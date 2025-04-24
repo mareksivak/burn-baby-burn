@@ -29,22 +29,9 @@
 		25F046872DB93334007883FE /* Burn Baby BurnUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Burn Baby BurnUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		25F0469F2DB93384007883FE /* Exceptions for "Burn Baby Burn" folder in "Burn Baby Burn" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Burn-Baby-Burn-Info.plist",
-			);
-			target = 25F0466F2DB93332007883FE /* Burn Baby Burn */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		25F046722DB93332007883FE /* Burn Baby Burn */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				25F0469F2DB93384007883FE /* Exceptions for "Burn Baby Burn" folder in "Burn Baby Burn" target */,
-			);
 			path = "Burn Baby Burn";
 			sourceTree = "<group>";
 		};

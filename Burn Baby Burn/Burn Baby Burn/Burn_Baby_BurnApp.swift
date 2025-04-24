@@ -11,7 +11,7 @@ import SwiftUI
 struct Burn_Baby_BurnApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainScreen()
         }
     }
 }
