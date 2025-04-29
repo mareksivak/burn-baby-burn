@@ -3,7 +3,7 @@ import SwiftUI
 struct ChatView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var remainingTime: TimeInterval
-    @State private var messages: [Message] = generateMessages()
+    @State private var messages: [Message] = AppConfig.generateMessages()
     @State private var scrollProxy: ScrollViewProxy? = nil
     
     init() {
@@ -29,7 +29,7 @@ struct ChatView: View {
                                 .foregroundColor(Colors.c0_050)
                         }
                         
-                        HStack(spacing: 8) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text("Calorie Crushers")
                                 .font(.custom("PressStart2P-Regular", size: 14))
                                 .foregroundColor(Colors.c0_050)
@@ -104,110 +104,6 @@ struct ChatView: View {
     private func scrollToBottom() {
         if let lastMessage = messages.last {
             scrollProxy?.scrollTo(lastMessage.id, anchor: .bottom)
-        }
-    }
-}
-
-struct MessageView: View {
-    let message: Message
-    
-    private var isJumboEmoji: Bool {
-        if let content = message.content {
-            let scalarString = content.unicodeScalars
-            return scalarString.allSatisfy { scalar in
-                scalar.properties.isEmoji && !scalar.properties.isWhitespace
-            }
-        }
-        return false
-    }
-    
-    var body: some View {
-        HStack(alignment: .bottom, spacing: 12) {
-            Image(message.authorImage)
-                .resizable()
-                .frame(width: 40, height: 40)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
-            
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(message.author)
-                        .foregroundColor(message.author == "Will Corbett" ? Color(red: 0.8, green: 0.3, blue: 0.3) : Colors.c2_500)
-                        .font(.custom("VT323-Regular", size: 20))
-                    
-                    if let score = message.score {
-                        HStack(spacing: 4) {
-                            // Rank pill
-                            Text("\(score.count)")
-                                .font(.custom("VT323-Regular", size: 16))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(score.count == 1 ? Colors.c2_500 : Color(red: 0.3, green: 0.2, blue: 0.1))
-                                .cornerRadius(12)
-                                .foregroundColor(Colors.c0_050)
-                            
-                            // Score pill
-                            Text("\(score.total)")
-                                .font(.custom("VT323-Regular", size: 16))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color(red: 0.3, green: 0.2, blue: 0.1), lineWidth: 1)
-                                )
-                                .foregroundColor(Colors.c0_050)
-                        }
-                    }
-                }
-                
-                if let content = message.content {
-                    if isJumboEmoji {
-                        Text(content)
-                            .font(.system(size: 48))
-                    } else {
-                        Text(content)
-                            .font(.custom("VT323-Regular", size: 18))
-                            .foregroundColor(Colors.c0_050)
-                            .padding()
-                            .background(Colors.c1_400)
-                            .cornerRadius(12)
-                    }
-                }
-                
-                if let workout = message.workout {
-                    HStack {
-                        HStack(alignment: .firstTextBaseline) {
-                            Image(systemName: workout.type.icon)
-                                .font(.system(size: 24))
-                            Text("\(workout.value)")
-                                .font(.custom("PressStart2P-Regular", size: 24))
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing) {
-                            Text("\(workout.calories) Cal")
-                                .font(.custom("VT323-Regular", size: 16))
-                            Text(workout.mode.rawValue)
-                                .font(.custom("VT323-Regular", size: 14))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color(red: 0.3, green: 0.2, blue: 0.1))
-                                .cornerRadius(8)
-                        }
-                    }
-                    .foregroundColor(Colors.c0_050)
-                    .padding()
-                    .background(Colors.c1_400)
-                    .cornerRadius(12)
-                    
-                    Text(workout.type.rawValue)
-                        .font(.custom("VT323-Regular", size: 16))
-                        .foregroundColor(Colors.c0_050)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 16)
-                }
-            }
         }
     }
 }
