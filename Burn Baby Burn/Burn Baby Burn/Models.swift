@@ -7,7 +7,7 @@ struct Message: Identifiable {
     let content: String?
     let workout: Workout?
     let timestamp: Date
-    let score: (count: Int, total: Int)?
+    let score: (rank: String, score: Int)?
     
     var formattedTime: String {
         let formatter = DateFormatter()

@@ -13,18 +13,21 @@ struct MessageView: View {
         return false
     }
     
-    private func rankColor(_ rank: Int) -> Color {
-        switch rank {
-        case 1: return Color(red: 0.93, green: 0.76, blue: 0.33) // Gold
-        case 2: return Color(red: 0.82, green: 0.73, blue: 0.62) // Beige
-        case 3: return Color(red: 0.82, green: 0.45, blue: 0.33) // Copper
-        default: return Color(red: 0.3, green: 0.2, blue: 0.1)
+    private func rankColor(_ rank: String) -> Color {
+        if let rankInt = Int(rank) {
+            switch rankInt {
+            case 1: return Color(red: 0.93, green: 0.76, blue: 0.33) // Gold
+            case 2: return Color(red: 0.82, green: 0.73, blue: 0.62) // Beige
+            case 3: return Color(red: 0.82, green: 0.45, blue: 0.33) // Copper
+            default: return Color(red: 0.3, green: 0.2, blue: 0.1)
+            }
         }
+        return Color(red: 0.3, green: 0.2, blue: 0.1)
     }
     
     private var authorNameColor: Color {
-        guard let score = message.score else { return Colors.c2_500 }
-        switch score.count {
+        guard let score = message.score, let rankInt = Int(score.rank) else { return Colors.c2_500 }
+        switch rankInt {
         case 1: return Color(red: 0.93, green: 0.76, blue: 0.33) // Gold
         case 2: return Color(red: 0.82, green: 0.73, blue: 0.62) // Beige
         case 3: return Color(red: 0.82, green: 0.45, blue: 0.33) // Copper
@@ -49,22 +52,22 @@ struct MessageView: View {
                     if let score = message.score {
                         HStack(spacing: 4) {
                             // Rank pill
-                            Text("\(score.count)")
+                            Text(score.rank)
                                 .font(.custom("VT323-Regular", size: 16))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(rankColor(score.count))
+                                .background(rankColor(score.rank))
                                 .cornerRadius(12)
                                 .foregroundColor(Colors.c0_050)
                             
                             // Score pill
-                            Text("\(score.total)")
+                            Text("\(score.score)")
                                 .font(.custom("VT323-Regular", size: 16))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(rankColor(score.count))
+                                        .stroke(rankColor(score.rank))
                                 )
                                 .foregroundColor(Colors.c0_050)
                         }
@@ -80,7 +83,7 @@ struct MessageView: View {
                             .font(.custom("VT323-Regular", size: 18))
                             .foregroundColor(Colors.c0_050)
                             .padding()
-                            .background(Colors.c1_400)
+                            .background(Colors.c1_400.opacity(0.3))
                             .cornerRadius(12)
                     }
                 }
@@ -129,7 +132,7 @@ struct MessageView: View {
             mode: .auto
         ),
         timestamp: Date(),
-        score: (1, 2458)
+        score: (rank: "1", score: 2458)
     ))
     .padding()
     .background(Color(red: 0.13, green: 0.08, blue: 0.08))
