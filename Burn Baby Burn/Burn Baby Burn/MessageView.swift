@@ -37,13 +37,17 @@ struct MessageView: View {
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 12) {
-            Image(message.authorImage)
-                .resizable()
-                .frame(width: 40, height: 40)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
-            
-            VStack(alignment: .leading, spacing: 8) {
+            if message.author != "Will Corbett" {
+                Image(message.authorImage)
+                    .resizable()
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
+            }
+            if message.author == "Will Corbett" {
+                Spacer()
+            }
+            VStack(alignment: message.author == "Will Corbett" ? .trailing : .leading, spacing: 8) {
                 HStack {
                     Text(message.author)
                         .foregroundColor(authorNameColor)
@@ -114,6 +118,7 @@ struct MessageView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: message.author == "Will Corbett" ? .trailing : .leading)
     }
     
     private func formatWorkoutValue(_ value: Int) -> String {

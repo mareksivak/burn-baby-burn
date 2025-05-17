@@ -40,6 +40,54 @@ struct ChatView: View {
                         }
                         
                         Spacer()
+                        
+                        // My rank/score indicator
+                        if let myScore = messages.reversed().compactMap({ $0.author == "Will Corbett" ? $0.score : nil }).first(where: { $0.rank != "-" && $0.score != 0 }) {
+                            VStack(spacing: 0) {
+                                Text(myScore.rank)
+                                    .font(.custom("VT323-Regular", size: 18))
+                                    .frame(width: 44)
+                                    .padding(.vertical, 2)
+                                    .background(rankColor(myScore.rank))
+                                    .foregroundColor(["1", "2", "3"].contains(myScore.rank) ? Colors.c1_400 : Colors.c0_050)
+                                Text(formatScore(myScore.score))
+                                    .font(.custom("VT323-Regular", size: 18))
+                                    .frame(width: 44)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        ZStack {
+                                            Color(red: 0.13, green: 0.08, blue: 0.08)
+                                            Rectangle()
+                                                .strokeBorder(rankColor(myScore.rank), lineWidth: 2)
+                                        }
+                                    )
+                                    .foregroundColor(Colors.c0_050)
+                            }
+                            .fixedSize()
+                        }
+                        
+                        // Steps indicator for Will Corbett
+                        if let stepsWorkout = messages.reversed().compactMap({ ($0.author == "Will Corbett" && $0.workout?.type == .walking) ? $0.workout : nil }).first {
+                            VStack(spacing: 0) {
+                                Image("steps")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(height: 24)
+                                Text(formatScore(stepsWorkout.value))
+                                    .font(.custom("VT323-Regular", size: 18))
+                                    .frame(width: 44)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        ZStack {
+                                            Color.clear
+                                            Rectangle()
+                                                .strokeBorder(Color(red: 0.3, green: 0.2, blue: 0.1), lineWidth: 2)
+                                        }
+                                    )
+                                    .foregroundColor(Colors.c0_500)
+                            }
+                            .fixedSize()
+                        }
                     }
                 }
                 .padding()
@@ -114,6 +162,26 @@ private func formatTimeRemaining(_ timeInterval: TimeInterval) -> String {
     let minutes = Int(timeInterval) % 3600 / 60
     let seconds = Int(timeInterval) % 60
     return String(format: "%dd:%02dh:%02dm:%02ds", days, hours, minutes, seconds)
+}
+
+private func rankColor(_ rank: String) -> Color {
+    if let rankInt = Int(rank) {
+        switch rankInt {
+        case 1: return Color(red: 0.93, green: 0.76, blue: 0.33) // Gold
+        case 2: return Color(red: 0.82, green: 0.73, blue: 0.62) // Beige
+        case 3: return Color(red: 0.82, green: 0.45, blue: 0.33) // Copper
+        default: return Color(red: 0.3, green: 0.2, blue: 0.1)
+        }
+    }
+    return Color(red: 0.3, green: 0.2, blue: 0.1)
+}
+
+private func formatScore(_ value: Int) -> String {
+    if value >= 1000 {
+        let kValue = Double(value) / 1000.0
+        return String(format: "%.1f", kValue).replacingOccurrences(of: ".0", with: "") + "k"
+    }
+    return "\(value)"
 }
 
 #Preview {
