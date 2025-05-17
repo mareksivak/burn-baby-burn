@@ -31,9 +31,10 @@ struct ChatView: View {
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Calorie Crushers")
-                                .font(.custom("PressStart2P-Regular", size: 14))
+                                .font(.custom("VT323-Regular", size: 20))
                                 .foregroundColor(Colors.c0_050)
-                            
+                                .lineLimit(1)
+                                .truncationMode(.tail)
                             Text(formatTimeRemaining(remainingTime))
                                 .font(.custom("VT323-Regular", size: 16))
                                 .foregroundColor(Colors.c0_500)
@@ -41,56 +42,52 @@ struct ChatView: View {
                         
                         Spacer()
                         
-                        // My rank/score indicator
-                        if let myScore = messages.reversed().compactMap({ $0.author == "Will Corbett" ? $0.score : nil }).first(where: { $0.rank != "-" && $0.score != 0 }) {
-                            VStack(spacing: 0) {
-                                Text(myScore.rank)
-                                    .font(.custom("VT323-Regular", size: 18))
-                                    .frame(width: 44)
-                                    .padding(.vertical, 2)
-                                    .background(rankColor(myScore.rank))
-                                    .foregroundColor(["1", "2", "3"].contains(myScore.rank) ? Colors.c1_400 : Colors.c0_050)
-                                Text(formatScore(myScore.score))
-                                    .font(.custom("VT323-Regular", size: 18))
-                                    .frame(width: 44)
-                                    .padding(.vertical, 2)
-                                    .background(
-                                        ZStack {
-                                            Color(red: 0.13, green: 0.08, blue: 0.08)
-                                            Rectangle()
-                                                .strokeBorder(rankColor(myScore.rank), lineWidth: 2)
-                                        }
-                                    )
-                                    .foregroundColor(Colors.c0_050)
+                        // Steps and rank/score indicator for Will Corbett
+                        if let stepsWorkout = messages.reversed().compactMap({ ($0.author == "Will Corbett" && $0.workout?.type == .walking) ? $0.workout : nil }).first,
+                           let myScore = messages.reversed().compactMap({ $0.author == "Will Corbett" ? $0.score : nil }).first(where: { $0.rank != "-" && $0.score != 0 }) {
+                            HStack(spacing: 4) {
+                                // Steps box
+                                VStack(spacing: 0) {
+                                    Image("steps")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(height: 24)
+                                    Text(formatScore(stepsWorkout.value))
+                                        .font(.custom("VT323-Regular", size: 18))
+                                        .frame(width: 44)
+                                        .padding(.vertical, 2)
+                                        .foregroundColor(Colors.c0_050)
+                                }
+                                .frame(width: 44)
+                                .background(Color(red: 0.41, green: 0.25, blue: 0.20)) // #693F32
+                                .cornerRadius(0)
+                                // Rank/score box
+                                VStack(spacing: 0) {
+                                    Text(myScore.rank)
+                                        .font(.custom("VT323-Regular", size: 18))
+                                        .frame(width: 44)
+                                        .padding(.vertical, 2)
+                                        .background(rankColor(myScore.rank))
+                                        .foregroundColor(["1", "2", "3"].contains(myScore.rank) ? Colors.c1_400 : Colors.c0_050)
+                                    Text(formatScore(myScore.score))
+                                        .font(.custom("VT323-Regular", size: 18))
+                                        .frame(width: 44)
+                                        .padding(.vertical, 2)
+                                        .background(
+                                            ZStack {
+                                                Color(red: 0.13, green: 0.08, blue: 0.08)
+                                                Rectangle()
+                                                    .strokeBorder(rankColor(myScore.rank), lineWidth: 2)
+                                            }
+                                        )
+                                        .foregroundColor(Colors.c0_050)
+                                }
+                                .fixedSize()
                             }
-                            .fixedSize()
-                        }
-                        
-                        // Steps indicator for Will Corbett
-                        if let stepsWorkout = messages.reversed().compactMap({ ($0.author == "Will Corbett" && $0.workout?.type == .walking) ? $0.workout : nil }).first {
-                            VStack(spacing: 0) {
-                                Image("steps")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(height: 24)
-                                Text(formatScore(stepsWorkout.value))
-                                    .font(.custom("VT323-Regular", size: 18))
-                                    .frame(width: 44)
-                                    .padding(.vertical, 2)
-                                    .background(
-                                        ZStack {
-                                            Color.clear
-                                            Rectangle()
-                                                .strokeBorder(Color(red: 0.3, green: 0.2, blue: 0.1), lineWidth: 2)
-                                        }
-                                    )
-                                    .foregroundColor(Colors.c0_500)
-                            }
-                            .fixedSize()
                         }
                     }
                 }
-                .padding()
+                .padding(.vertical, 8)
                 .background(Color(red: 0.15, green: 0.1, blue: 0.1))
                 
                 // Chat messages

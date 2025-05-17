@@ -38,11 +38,11 @@ struct MessageView: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 12) {
             if message.author != "Will Corbett" {
-                Image(message.authorImage)
-                    .resizable()
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
+            Image(message.authorImage)
+                .resizable()
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
             }
             if message.author == "Will Corbett" {
                 Spacer()
@@ -91,30 +91,36 @@ struct MessageView: View {
                 }
                 
                 if let workout = message.workout {
-                    HStack(alignment: .center, spacing: 20) {
+                    let card = HStack(alignment: .center, spacing: 20) {
                         HStack(alignment: .center) {
                             Image(systemName: workout.type.icon)
                                 .font(.system(size: 24))
                             Text(formatWorkoutValue(workout.value))
                                 .font(.custom("PressStart2P-Regular", size: getWorkoutValueFontSize(workout.value)))
                         }
-                        
                         VStack(alignment: .trailing) {
                             Text("\(formatWorkoutValue(workout.calories)) Cal")
                                 .font(.custom("VT323-Regular", size: 16))
-                            if workout.mode == .manual {
-                                Text(workout.mode.rawValue)
-                                    .font(.custom("VT323-Regular", size: 14))
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color(red: 0.3, green: 0.2, blue: 0.1))
-                            }
                         }
                     }
                     .foregroundColor(Colors.c0_050)
                     .padding()
                     .background(Colors.c1_400)
                     .fixedSize(horizontal: true, vertical: false)
+                    .overlay(
+                        Group {
+                            if workout.mode == .manual {
+                                Text("MANUAL")
+                                    .font(.custom("VT323-Regular", size: 14))
+                                    .foregroundColor(Colors.c0_500)
+                                    .padding(.vertical, 1)
+                                    .padding(.horizontal, 4)
+                                    .background(Color(red: 0.3, green: 0.2, blue: 0.1))
+                                    .cornerRadius(0)
+                            }
+                        }, alignment: .bottomTrailing
+                    )
+                    card
                 }
             }
         }
@@ -125,13 +131,13 @@ struct MessageView: View {
         if value >= 1000 {
             let kValue = Double(value) / 1000.0
             return String(format: "%.1fk", kValue)
-        }
+                }
         return "\(value)"
     }
     
     private func getWorkoutValueFontSize(_ value: Int) -> CGFloat {
-        if value < 500 {
-            return 20
+        if value < 400 {
+            return 18
         } else if value >= 1000 {
             return 28
         }
