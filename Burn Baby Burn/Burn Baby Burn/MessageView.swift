@@ -16,11 +16,11 @@ struct MessageView: View {
     private func rankColor(_ rank: String) -> Color {
         if let rankInt = Int(rank) {
             switch rankInt {
-            case 1: return Color(red: 0.93, green: 0.76, blue: 0.33) // Gold
-            case 2: return Color(red: 0.82, green: 0.73, blue: 0.62) // Beige
-            case 3: return Color(red: 0.82, green: 0.45, blue: 0.33) // Copper
-            default: return Color(red: 0.3, green: 0.2, blue: 0.1)
-            }
+        case 1: return Color(red: 0.93, green: 0.76, blue: 0.33) // Gold
+        case 2: return Color(red: 0.82, green: 0.73, blue: 0.62) // Beige
+        case 3: return Color(red: 0.82, green: 0.45, blue: 0.33) // Copper
+        default: return Color(red: 0.3, green: 0.2, blue: 0.1)
+        }
         }
         return Color(red: 0.3, green: 0.2, blue: 0.1)
     }
@@ -50,24 +50,23 @@ struct MessageView: View {
                         .font(.custom("VT323-Regular", size: 20))
                     
                     if let score = message.score {
-                        HStack(spacing: 4) {
-                            // Rank pill
+                        HStack(spacing: 0) {
                             Text(score.rank)
                                 .font(.custom("VT323-Regular", size: 16))
                                 .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
+                                .padding(.vertical, 2)
                                 .background(rankColor(score.rank))
-                                .cornerRadius(12)
-                                .foregroundColor(Colors.c0_050)
-                            
-                            // Score pill
-                            Text("\(score.score)")
+                                .foregroundColor(["1", "2", "3"].contains(score.rank) ? Colors.c1_400 : Colors.c0_050)
+                            Text("\(formatScore(score.score))")
                                 .font(.custom("VT323-Regular", size: 16))
                                 .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(rankColor(score.rank))
+                                .padding(.vertical, 2)
+                                .background(
+                                    ZStack {
+                                        Color.clear
+                                        Rectangle()
+                                            .strokeBorder(rankColor(score.rank), lineWidth: 1)
+                                    }
                                 )
                                 .foregroundColor(Colors.c0_050)
                         }
@@ -84,39 +83,62 @@ struct MessageView: View {
                             .foregroundColor(Colors.c0_050)
                             .padding()
                             .background(Colors.c1_400.opacity(0.3))
-                            .cornerRadius(12)
                     }
                 }
                 
                 if let workout = message.workout {
-                    HStack(alignment: .center) {
+                    HStack(alignment: .center, spacing: 20) {
                         HStack(alignment: .center) {
                             Image(systemName: workout.type.icon)
                                 .font(.system(size: 24))
-                            Text("\(workout.value)")
-                                .font(.custom("PressStart2P-Regular", size: 24))
+                            Text(formatWorkoutValue(workout.value))
+                                .font(.custom("PressStart2P-Regular", size: getWorkoutValueFontSize(workout.value)))
                         }
                         
-                        Spacer()
-                        
                         VStack(alignment: .trailing) {
-                            Text("\(workout.calories) Cal")
+                            Text("\(formatWorkoutValue(workout.calories)) Cal")
                                 .font(.custom("VT323-Regular", size: 16))
-                            Text(workout.mode.rawValue)
-                                .font(.custom("VT323-Regular", size: 14))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color(red: 0.3, green: 0.2, blue: 0.1))
-                                .cornerRadius(8)
+                            if workout.mode == .manual {
+                                Text(workout.mode.rawValue)
+                                    .font(.custom("VT323-Regular", size: 14))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color(red: 0.3, green: 0.2, blue: 0.1))
+                            }
                         }
                     }
                     .foregroundColor(Colors.c0_050)
                     .padding()
                     .background(Colors.c1_400)
-                    .cornerRadius(12)
+                    .fixedSize(horizontal: true, vertical: false)
                 }
             }
         }
+    }
+    
+    private func formatWorkoutValue(_ value: Int) -> String {
+        if value >= 1000 {
+            let kValue = Double(value) / 1000.0
+            return String(format: "%.1fk", kValue)
+        }
+        return "\(value)"
+    }
+    
+    private func getWorkoutValueFontSize(_ value: Int) -> CGFloat {
+        if value < 500 {
+            return 20
+        } else if value >= 1000 {
+            return 28
+        }
+        return 24
+    }
+    
+    private func formatScore(_ value: Int) -> String {
+        if value >= 1000 {
+            let kValue = Double(value) / 1000.0
+            return String(format: "%.1f", kValue).replacingOccurrences(of: ".0", with: "") + "k"
+        }
+        return "\(value)"
     }
 }
 
@@ -137,3 +159,4 @@ struct MessageView: View {
     .padding()
     .background(Color(red: 0.13, green: 0.08, blue: 0.08))
 } 
+
