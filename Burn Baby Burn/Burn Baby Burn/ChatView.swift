@@ -5,6 +5,8 @@ struct ChatView: View {
     @State private var remainingTime: TimeInterval
     @State private var messages: [Message] = AppConfig.generateMessages()
     @State private var scrollProxy: ScrollViewProxy? = nil
+    @State private var inputText: String = ""
+    @FocusState private var isInputFocused: Bool
     
     init() {
         let days: TimeInterval = 2 * 24 * 3600  // 2 days
@@ -18,6 +20,9 @@ struct ChatView: View {
         ZStack {
             Color(red: 0.13, green: 0.08, blue: 0.08)
                 .ignoresSafeArea()
+                .onTapGesture {
+                    isInputFocused = false
+                }
             
             VStack(spacing: 0) {
                 // Top bar
@@ -28,6 +33,7 @@ struct ChatView: View {
                                 .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(Colors.c0_050)
                         }
+                        .padding(.leading, 12)  // Changed from 20 to 12
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Calorie Crushers")
@@ -82,8 +88,8 @@ struct ChatView: View {
                                         )
                                         .foregroundColor(Colors.c0_050)
                                 }
-                                .fixedSize()
                             }
+                            .padding(.trailing, 12)  // Changed from 20 to 12
                         }
                     }
                 }
@@ -105,27 +111,66 @@ struct ChatView: View {
                         scrollProxy = proxy
                         scrollToBottom()
                     }
+                    .gesture(
+                        DragGesture()
+                            .onEnded { gesture in
+                                if gesture.translation.height > 50 {
+                                    isInputFocused = false
+                                }
+                            }
+                    )
                 }
                 
                 // Input bar
-                HStack {
-                    Image(systemName: "flame")
-                    Image(systemName: "person.2")
-                    Image(systemName: "bolt")
+                VStack(spacing: 0) {
+                    // First row: TextField
+                    TextField("Say hey", text: $inputText)
+                        .font(.custom("VT323-Regular", size: 22))
+                        .foregroundColor(Colors.c0_050)
+                        .padding(.horizontal)
+                        .padding(.vertical, 12)
+                        .background(Color(red: 0.15, green: 0.1, blue: 0.1))
+                        .cornerRadius(0)
+                        .focused($isInputFocused)
+                        .submitLabel(.send)
+                        .onSubmit {
+                            sendMessage()
+                        }
                     
-                    Button(action: {}) {
-                        Text("Say hey")
-                            .font(.custom("PressStart2P-Regular", size: 14))
-                            .foregroundColor(Colors.c2_500)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Colors.c1_400)
-                            .cornerRadius(8)
+                    // Second row: Actions and send arrow
+                    HStack(spacing: 24) {
+                        Button(action: {}) {
+                            Image(systemName: "flame")
+                                .font(.system(size: 16))
+                                .frame(width: 38, height: 28)
+                        }
+                        Button(action: {}) {
+                            Image(systemName: "photo")
+                                .font(.system(size: 16))
+                                .frame(width: 38, height: 28)
+                        }
+                        Button(action: {}) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16))
+                                .frame(width: 38, height: 28)
+                        }
+                    }
+                    .foregroundColor(Colors.c0_050)
+                    
+                    Spacer()
+                    
+                    if !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button(action: sendMessage) {
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(Color(red: 0.15, green: 0.1, blue: 0.1))
+                                .frame(width: 38, height: 28)
+                                .background(Colors.c2_500)
+                        }
                     }
                 }
-                .font(.system(size: 24))
-                .foregroundColor(Colors.c2_500)
-                .padding()
+                .padding(.horizontal)
+                .padding(.vertical, 8)
                 .background(Color(red: 0.15, green: 0.1, blue: 0.1))
             }
         }
@@ -149,6 +194,24 @@ struct ChatView: View {
     private func scrollToBottom() {
         if let lastMessage = messages.last {
             scrollProxy?.scrollTo(lastMessage.id, anchor: .bottom)
+        }
+    }
+    
+    private func sendMessage() {
+        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let newMessage = Message(
+            author: "Will Corbett",
+            authorImage: "will",
+            content: trimmed,
+            workout: nil,
+            timestamp: Date(),
+            score: messages.last(where: { $0.author == "Will Corbett" })?.score
+        )
+        messages.append(newMessage)
+        inputText = ""
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            scrollToBottom()
         }
     }
 }

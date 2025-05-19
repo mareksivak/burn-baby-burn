@@ -131,7 +131,7 @@ struct GameCard: View {
         .padding(16)
         .frame(maxWidth: .infinity)
         .background(Colors.c1_400)
-        .cornerRadius(12)
+        .cornerRadius(0)
     }
 }
 
