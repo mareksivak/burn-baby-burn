@@ -7,6 +7,12 @@ struct ChatView: View {
     @State private var scrollProxy: ScrollViewProxy? = nil
     @State private var inputText: String = ""
     @FocusState private var isInputFocused: Bool
+    @State private var keyboardIsVisible: Bool = false
+    @State private var keyboardHeight: CGFloat = 0
+    
+    private var safeAreaInset: CGFloat {
+        UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
+    }
     
     init() {
         let days: TimeInterval = 2 * 24 * 3600  // 2 days
@@ -106,6 +112,7 @@ struct ChatView: View {
                             }
                         }
                         .padding()
+                        .padding(.bottom, keyboardHeight)
                     }
                     .onAppear {
                         scrollProxy = proxy
@@ -124,19 +131,27 @@ struct ChatView: View {
                 // Input bar
                 VStack(spacing: 0) {
                     // First row: TextField
-                    TextField("Say hey", text: $inputText)
-                        .font(.custom("VT323-Regular", size: 22))
-                        .foregroundColor(Colors.c0_050)
-                        .padding(.horizontal)
-                        .padding(.vertical, 12)
-                        .background(Color(red: 0.15, green: 0.1, blue: 0.1))
-                        .cornerRadius(0)
-                        .focused($isInputFocused)
-                        .submitLabel(.send)
-                        .onSubmit {
-                            sendMessage()
-                        }
-                    
+                    TextField(
+                        "",
+                        text: $inputText,
+                        prompt: Text("Say hey")
+                            .font(.custom("VT323-Regular", size: 22))
+                            .foregroundColor(Colors.c0_500)
+                    )
+                    .font(.custom("VT323-Regular", size: 22))
+                    .foregroundColor(Colors.c0_050)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+                    .background(Color(red: 0.20, green: 0.13, blue: 0.13))
+                    .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
+                    .cornerRadius(0)
+                    .focused($isInputFocused)
+                    .submitLabel(.send)
+                    .onSubmit {
+                        sendMessage()
+                    }
+                    // Add space between text input and buttons
+                    Spacer().frame(height: 8)
                     // Second row: Actions and send arrow
                     HStack(spacing: 24) {
                         Button(action: {}) {
@@ -154,28 +169,46 @@ struct ChatView: View {
                                 .font(.system(size: 16))
                                 .frame(width: 38, height: 28)
                         }
-                    }
-                    .foregroundColor(Colors.c0_050)
-                    
-                    Spacer()
-                    
-                    if !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Button(action: sendMessage) {
-                            Image(systemName: "arrow.up")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(Color(red: 0.15, green: 0.1, blue: 0.1))
-                                .frame(width: 38, height: 28)
-                                .background(Colors.c2_500)
+                        Spacer()
+                        if !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Button(action: sendMessage) {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(Color(red: 0.20, green: 0.13, blue: 0.13))
+                                    .frame(width: 38, height: 28)
+                                    .background(Colors.c2_500)
+                            }
                         }
                     }
+                    .foregroundColor(Colors.c0_050)
+                    .padding(.horizontal)
+                    .frame(maxWidth: .infinity, minHeight: 28, maxHeight: 28)
+                    .background(Color(red: 0.20, green: 0.13, blue: 0.13))
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color(red: 0.15, green: 0.1, blue: 0.1))
+                .background(Color(red: 0.20, green: 0.13, blue: 0.13))
+                .safeAreaInset(edge: .bottom) {
+                    Color.clear.frame(height: keyboardIsVisible ? 12 : 0)
+                }
             }
         }
         .onAppear {
             startTimer()
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
+                keyboardIsVisible = true
+                if let keyboardFrame = (UIApplication.shared.windows.first?.rootViewController?.view.window?.inputViewController?.view.frame) {
+                    keyboardHeight = keyboardFrame.height
+                } else {
+                    keyboardHeight = 300 // fallback
+                }
+            }
+            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                keyboardIsVisible = false
+                keyboardHeight = 0
+            }
+        }
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
     }
     
