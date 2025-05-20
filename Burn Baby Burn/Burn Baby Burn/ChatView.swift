@@ -9,6 +9,7 @@ struct ChatView: View {
     @FocusState private var isInputFocused: Bool
     @State private var keyboardIsVisible: Bool = false
     @State private var keyboardHeight: CGFloat = 0
+    @State private var showLeaderboard: Bool = false
     
     private var safeAreaInset: CGFloat {
         UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
@@ -35,8 +36,10 @@ struct ChatView: View {
                 VStack(spacing: 0) {
                     HStack {
                         Button(action: { dismiss() }) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .semibold))
+                            Image("back")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 20, height: 20)
                                 .foregroundColor(Colors.c0_050)
                         }
                         .padding(.leading, 12)  // Changed from 20 to 12
@@ -50,6 +53,9 @@ struct ChatView: View {
                             Text(formatTimeRemaining(remainingTime))
                                 .font(.custom("VT323-Regular", size: 16))
                                 .foregroundColor(Colors.c0_500)
+                        }
+                        .onTapGesture {
+                            showLeaderboard = true
                         }
                         
                         Spacer()
@@ -155,18 +161,17 @@ struct ChatView: View {
                     // Second row: Actions and send arrow
                     HStack(spacing: 24) {
                         Button(action: {}) {
-                            Image(systemName: "flame")
-                                .font(.system(size: 16))
+                            Image("workout")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 20, height: 20)
                                 .frame(width: 38, height: 28)
                         }
                         Button(action: {}) {
-                            Image(systemName: "photo")
-                                .font(.system(size: 16))
-                                .frame(width: 38, height: 28)
-                        }
-                        Button(action: {}) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 16))
+                            Image("add")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 20, height: 20)
                                 .frame(width: 38, height: 28)
                         }
                         Spacer()
@@ -191,6 +196,26 @@ struct ChatView: View {
                 }
             }
         }
+        .overlay {
+            if showLeaderboard {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            showLeaderboard = false
+                        }
+                    }
+            }
+        }
+        .overlay(alignment: .trailing) {
+            if showLeaderboard {
+                LeaderboardView(messages: messages)
+                    .transition(.move(edge: .trailing))
+                    .frame(maxWidth: .infinity)
+                    .background(Color(red: 0.13, green: 0.08, blue: 0.08))
+            }
+        }
+        .animation(.easeOut(duration: 0.3), value: showLeaderboard)
         .onAppear {
             startTimer()
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
