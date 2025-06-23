@@ -10,6 +10,8 @@ struct ChatView: View {
     @State private var keyboardIsVisible: Bool = false
     @State private var keyboardHeight: CGFloat = 0
     @State private var showLeaderboard: Bool = false
+    @State private var showItemModal: Bool = false
+    @State private var playersForItems: [Player] = []
     
     private var safeAreaInset: CGFloat {
         UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
@@ -108,30 +110,52 @@ struct ChatView: View {
                 .padding(.vertical, 8)
                 .background(Color(red: 0.15, green: 0.1, blue: 0.1))
                 
-                // Chat messages
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 20) {
-                            ForEach(messages) { message in
-                                MessageView(message: message)
-                                    .id(message.id)
-                            }
-                        }
-                        .padding()
-                        .padding(.bottom, keyboardHeight)
-                    }
-                    .onAppear {
-                        scrollProxy = proxy
-                        scrollToBottom()
-                    }
-                    .gesture(
-                        DragGesture()
-                            .onEnded { gesture in
-                                if gesture.translation.height > 50 {
-                                    isInputFocused = false
+                ZStack {
+                    // Chat messages
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 20) {
+                                ForEach(messages) { message in
+                                    MessageView(message: message)
+                                        .id(message.id)
                                 }
                             }
-                    )
+                            .padding()
+                            .padding(.bottom, keyboardHeight)
+                        }
+                        .onAppear {
+                            scrollProxy = proxy
+                            scrollToBottom()
+                        }
+                        .gesture(
+                            DragGesture()
+                                .onEnded { gesture in
+                                    if gesture.translation.height > 50 {
+                                        isInputFocused = false
+                                    }
+                                }
+                        )
+                    }
+                    
+                    // Floating item button
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                showItemModal = true
+                            }) {
+                                Image("item-omnomnom")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color(red: 0.20, green: 0.13, blue: 0.13))
+                                    .cornerRadius(0) // Sharp edges
+                            }
+                            .padding(.trailing, 16)
+                        }
+                        .padding(.top, 8)
+                        Spacer()
+                    }
                 }
                 
                 // Input bar
@@ -215,9 +239,18 @@ struct ChatView: View {
                     .background(Color(red: 0.13, green: 0.08, blue: 0.08))
             }
         }
+        .sheet(isPresented: $showItemModal) {
+            ItemFlowView(isPresented: $showItemModal, players: $playersForItems)
+        }
         .animation(.easeOut(duration: 0.3), value: showLeaderboard)
+        .onChange(of: showItemModal) {
+            if showItemModal {
+                self.playersForItems = self.extractPlayers()
+            }
+        }
         .onAppear {
             startTimer()
+            self.playersForItems = self.extractPlayers()
             NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
                 keyboardIsVisible = true
                 if let keyboardFrame = (UIApplication.shared.windows.first?.rootViewController?.view.window?.inputViewController?.view.frame) {
@@ -271,6 +304,37 @@ struct ChatView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             scrollToBottom()
         }
+    }
+    
+    private func extractPlayers() -> [Player] {
+        let authors = Array(Set(messages.map { $0.author }))
+
+        let players: [Player] = authors.compactMap { author in
+            guard let latestMessageWithScore = messages.last(where: { $0.author == author && $0.score != nil }),
+                  let scoreInfo = latestMessageWithScore.score else {
+                return nil
+            }
+            
+            return Player(
+                name: author,
+                avatarName: latestMessageWithScore.authorImage,
+                score: scoreInfo.score,
+                rank: 0 // Rank will be recalculated after sorting
+            )
+        }
+        
+        // Sort players by score, descending
+        let sortedPlayers = players.sorted { $0.score > $1.score }
+        
+        // Assign ranks based on the new sort order
+        var finalPlayers = [Player]()
+        for (index, player) in sortedPlayers.enumerated() {
+            var rankedPlayer = player
+            rankedPlayer.rank = index + 1
+            finalPlayers.append(rankedPlayer)
+        }
+        
+        return finalPlayers
     }
 }
 
