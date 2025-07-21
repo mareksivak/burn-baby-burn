@@ -45,4 +45,21 @@ enum WorkoutType: String {
 enum WorkoutMode: String {
     case auto = "AUTO"
     case manual = "MANUAL"
+}
+
+struct Player: Identifiable, Equatable {
+    let id = UUID()
+    let name: String
+    let image: String
+    var score: Int
+    var rank: Int
+    let isCurrentPlayer: Bool
+    
+    init(name: String, image: String, score: Int, isCurrentPlayer: Bool = false, rank: Int = 0) {
+        self.name = name
+        self.image = image
+        self.score = score
+        self.isCurrentPlayer = isCurrentPlayer
+        self.rank = rank
+    }
 } 

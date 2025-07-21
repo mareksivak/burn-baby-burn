@@ -317,7 +317,7 @@ struct ChatView: View {
             
             return Player(
                 name: author,
-                avatarName: latestMessageWithScore.authorImage,
+                image: latestMessageWithScore.authorImage,
                 score: scoreInfo.score,
                 rank: 0 // Rank will be recalculated after sorting
             )

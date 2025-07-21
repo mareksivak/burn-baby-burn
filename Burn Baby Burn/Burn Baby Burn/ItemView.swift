@@ -37,13 +37,7 @@ struct Item: Identifiable, Equatable {
     }
 }
 
-struct Player: Identifiable, Equatable {
-    let id = UUID() // This should ideally be a stable ID from your data source
-    let name: String
-    let avatarName: String
-    var score: Int
-    var rank: Int
-}
+
 
 
 // MARK: - Item Flow Container View
@@ -335,10 +329,10 @@ struct PlayerRow: View {
                 .font(.custom("VT323-Regular", size: 18))
                 .frame(width: 20)
             
-            Image(systemName: "person.crop.circle.fill") // Placeholder
+            Image(player.image)
                 .resizable()
                 .frame(width: 32, height: 32)
-                .foregroundColor(.gray)
+                .clipShape(Circle())
 
             Text(player.name)
                 .font(.custom("VT323-Regular", size: 18))
@@ -482,10 +476,10 @@ class ItemManager {
 struct ItemFlowView_Previews: PreviewProvider {
     static var previews: some View {
         ItemFlowView(isPresented: .constant(true), players: .constant([
-            Player(name: "Player A", avatarName: "avatar1", score: 1234, rank: 1),
-            Player(name: "Player B", avatarName: "avatar2", score: 1234, rank: 2),
-            Player(name: "Player C", avatarName: "avatar3", score: 1234, rank: 3),
-            Player(name: "Player D", avatarName: "avatar4", score: 1234, rank: 4)
+            Player(name: "Player A", image: "avatar1", score: 1234, rank: 1),
+            Player(name: "Player B", image: "avatar2", score: 1234, rank: 2),
+            Player(name: "Player C", image: "avatar3", score: 1234, rank: 3),
+            Player(name: "Player D", image: "avatar4", score: 1234, rank: 4)
         ]))
     }
 } 

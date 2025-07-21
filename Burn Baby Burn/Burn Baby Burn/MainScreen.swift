@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MainScreen: View {
-    @State private var showingChat = false
+    @State private var showingRacetrack = false
     
     // Break down calculations into constants
     private let day: TimeInterval = 24 * 3600
@@ -41,7 +41,7 @@ struct MainScreen: View {
                     
                     // Games Section
                     VStack(spacing: 15) {
-                        Button(action: { showingChat = true }) {
+                        Button(action: { showingRacetrack = true }) {
                             GameCard(
                                 profileImages: ["will", "chris-h", "nic", "paul", "marek"],
                                 title: "Calorie Crushers",
@@ -71,8 +71,8 @@ struct MainScreen: View {
                     .padding(.bottom, 20)
                 }
             }
-            .fullScreenCover(isPresented: $showingChat) {
-                ChatView()
+            .fullScreenCover(isPresented: $showingRacetrack) {
+                RacetrackView()
             }
             .onAppear {
                 startTimer()
