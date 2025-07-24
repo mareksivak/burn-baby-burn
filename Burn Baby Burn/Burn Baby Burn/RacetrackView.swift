@@ -3,6 +3,8 @@ import SwiftUI
 struct RacetrackView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var scrollProxy: ScrollViewProxy? = nil
+    @State private var showPlayerWorkouts: Bool = false
+    @State private var selectedPlayer: Player? = nil
     
     // Player data with actual scores from workouts
     private let players = [
@@ -12,6 +14,9 @@ struct RacetrackView: View {
         Player(name: "Christopher Schrader", image: "chris-h", score: 2310, isCurrentPlayer: false),
         Player(name: "Ziga Porenta", image: "paul", score: 1440, isCurrentPlayer: false)
     ]
+    
+    // Messages for workout data
+    private let messages = AppConfig.generateMessages()
     
     private var maxScore: Int {
         players.map { $0.score }.max() ?? 3280
@@ -86,7 +91,12 @@ struct RacetrackView: View {
                                             laneIndex: laneIndex,
                                             players: playersByLane[laneIndex],
                                             maxScore: maxScore,
-                                            totalTrackHeight: totalTrackHeight
+                                            totalTrackHeight: totalTrackHeight,
+                                            onPlayerTap: { player in
+                                                print("RacetrackView: Player tapped: \(player.name)")
+                                                selectedPlayer = player
+                                                showPlayerWorkouts = true
+                                            }
                                         )
                                     }
                                 }
@@ -129,6 +139,20 @@ struct RacetrackView: View {
                 Spacer()
             }
         }
+        .sheet(isPresented: $showPlayerWorkouts) {
+            if let selectedPlayer = selectedPlayer {
+                NavigationView {
+                    PlayerWorkoutsView(player: selectedPlayer, messages: messages)
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
+        }
+        .onChange(of: showPlayerWorkouts) { isPresented in
+            if isPresented, let selectedPlayer = selectedPlayer {
+                print("RacetrackView: Presenting sheet for \(selectedPlayer.name)")
+            }
+        }
     }
 }
 
@@ -137,6 +161,7 @@ struct VirtualLaneView: View {
     let players: [Player]
     let maxScore: Int
     let totalTrackHeight: CGFloat
+    let onPlayerTap: (Player) -> Void
     
     private var laneWidth: CGFloat {
         (UIScreen.main.bounds.width - 40) / 5 // 5 lanes, 20px padding on each side
@@ -146,8 +171,10 @@ struct VirtualLaneView: View {
         ZStack {
             // Players positioned vertically in this virtual lane
             ForEach(players) { player in
-                PlayerMarker(player: player)
-                    .offset(y: totalTrackHeight - (CGFloat(player.score) * 0.1) - 25)
+                PlayerMarker(player: player) {
+                    onPlayerTap(player)
+                }
+                .offset(y: totalTrackHeight - (CGFloat(player.score) * 0.1) - 25)
             }
         }
         .frame(width: laneWidth)
@@ -156,6 +183,7 @@ struct VirtualLaneView: View {
 
 struct PlayerMarker: View {
     let player: Player
+    let onTap: () -> Void
     
     var body: some View {
         VStack(spacing: 4) {
@@ -195,6 +223,9 @@ struct PlayerMarker: View {
             }
         }
         .id(player.id)
+        .onTapGesture {
+            onTap()
+        }
     }
 }
 
