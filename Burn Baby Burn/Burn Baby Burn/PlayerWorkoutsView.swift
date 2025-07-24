@@ -17,6 +17,11 @@ struct PlayerWorkoutsView: View {
         return workouts
     }
     
+    private var playerScoreInfo: (rank: String, score: Int)? {
+        messages.reversed().compactMap { $0.author == player.name ? $0.score : nil }
+            .first(where: { $0.rank != "-" && $0.score != 0 })
+    }
+    
     var body: some View {
         ZStack {
             Color(red: 0.13, green: 0.08, blue: 0.08)
@@ -51,9 +56,25 @@ struct PlayerWorkoutsView: View {
                             .font(.custom("PressStart2P-Regular", size: 16))
                             .foregroundColor(Colors.c2_500)
                         
-                        Text("WORKOUTS")
-                            .font(.custom("PressStart2P-Regular", size: 12))
-                            .foregroundColor(Colors.c0_500)
+                        if let scoreInfo = playerScoreInfo {
+                            HStack(spacing: 8) {
+                                Text("RANK \(scoreInfo.rank)")
+                                    .font(.custom("PressStart2P-Regular", size: 12))
+                                    .foregroundColor(Colors.c0_500)
+                                
+                                Text("•")
+                                    .font(.custom("PressStart2P-Regular", size: 12))
+                                    .foregroundColor(Colors.c0_500)
+                                
+                                Text("\(formatScore(scoreInfo.score)) PTS")
+                                    .font(.custom("PressStart2P-Regular", size: 12))
+                                    .foregroundColor(Colors.c0_500)
+                            }
+                        } else {
+                            Text("WORKOUTS")
+                                .font(.custom("PressStart2P-Regular", size: 12))
+                                .foregroundColor(Colors.c0_500)
+                        }
                     }
                     
                     Spacer()
@@ -100,4 +121,10 @@ struct PlayerWorkoutsView: View {
     let samplePlayer = Player(name: "Will Corbett", image: "will", score: 3268, isCurrentPlayer: true)
     let sampleMessages = AppConfig.generateMessages()
     PlayerWorkoutsView(player: samplePlayer, messages: sampleMessages)
+}
+
+private func formatScore(_ value: Int) -> String {
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
 } 
