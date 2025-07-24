@@ -75,6 +75,14 @@ struct AppConfig {
         }
     }
     
+    // Helper function to get location for author
+    private static func getLocationForAuthor(_ authorName: String) -> String {
+        let locations = ["Gym", "Home", "Park", "Studio", "Outdoors", "Fitness Center"]
+        // Use author name to generate consistent location
+        let hash = abs(authorName.hashValue)
+        return locations[hash % locations.count]
+    }
+    
     // Helper function to convert config to Message model
     static func generateMessages() -> [Message] {
         // Reset all authors' scores and ranks
@@ -124,7 +132,8 @@ struct AppConfig {
                 content: content,
                 workout: workout,
                 timestamp: timestamp,
-                score: (authorRank, authorScore)
+                score: (authorRank, authorScore),
+                location: getLocationForAuthor(config.authorName)
             )
         }
     }

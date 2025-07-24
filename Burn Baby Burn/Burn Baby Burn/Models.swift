@@ -8,6 +8,7 @@ struct Message: Identifiable {
     let workout: Workout?
     let timestamp: Date
     let score: (rank: String, score: Int)?
+    let location: String?
     
     var formattedTime: String {
         let formatter = DateFormatter()

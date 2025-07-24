@@ -17,6 +17,11 @@ struct ChatView: View {
         UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0
     }
     
+    // Sort messages by timestamp, most recent first
+    private var sortedMessages: [Message] {
+        messages.sorted { $0.timestamp > $1.timestamp }
+    }
+    
     init() {
         let days: TimeInterval = 2 * 24 * 3600  // 2 days
         let hours: TimeInterval = 10 * 3600     // 10 hours
@@ -111,12 +116,12 @@ struct ChatView: View {
                 .background(Color(red: 0.15, green: 0.1, blue: 0.1))
                 
                 ZStack {
-                    // Chat messages
+                    // Social feed posts
                     ScrollViewReader { proxy in
                         ScrollView {
-                            LazyVStack(alignment: .leading, spacing: 20) {
-                                ForEach(messages) { message in
-                                    MessageView(message: message)
+                            LazyVStack(alignment: .leading, spacing: 16) {
+                                ForEach(sortedMessages) { message in
+                                    SocialPostView(message: message)
                                         .id(message.id)
                                 }
                             }
@@ -125,7 +130,10 @@ struct ChatView: View {
                         }
                         .onAppear {
                             scrollProxy = proxy
-                            scrollToBottom()
+                            // Start at the top (most recent posts)
+                            if let firstMessage = sortedMessages.first {
+                                scrollProxy?.scrollTo(firstMessage.id, anchor: .top)
+                            }
                         }
                         .gesture(
                             DragGesture()
@@ -282,9 +290,9 @@ struct ChatView: View {
         }
     }
     
-    private func scrollToBottom() {
-        if let lastMessage = messages.last {
-            scrollProxy?.scrollTo(lastMessage.id, anchor: .bottom)
+    private func scrollToTop() {
+        if let firstMessage = sortedMessages.first {
+            scrollProxy?.scrollTo(firstMessage.id, anchor: .top)
         }
     }
     
@@ -297,12 +305,13 @@ struct ChatView: View {
             content: trimmed,
             workout: nil,
             timestamp: Date(),
-            score: messages.last(where: { $0.author == "Will Corbett" })?.score
+            score: messages.last(where: { $0.author == "Will Corbett" })?.score,
+            location: "Home"
         )
         messages.append(newMessage)
         inputText = ""
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            scrollToBottom()
+            scrollToTop()
         }
     }
     

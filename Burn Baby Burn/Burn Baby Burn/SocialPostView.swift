@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MessageView: View {
+struct SocialPostView: View {
     let message: Message
     
     private var isJumboEmoji: Bool {
@@ -35,48 +35,79 @@ struct MessageView: View {
         }
     }
     
+    private func formatTimestamp(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+    
+    private func getLocation() -> String {
+        return message.location ?? "Gym"
+    }
+    
     var body: some View {
-        HStack(alignment: .bottom, spacing: 12) {
-            if message.author != "Will Corbett" {
-            Image(message.authorImage)
-                .resizable()
-                .frame(width: 40, height: 40)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
-            }
-            if message.author == "Will Corbett" {
-                Spacer()
-            }
-            VStack(alignment: message.author == "Will Corbett" ? .trailing : .leading, spacing: 8) {
-                HStack {
-                    Text(message.author)
-                        .foregroundColor(authorNameColor)
-                        .font(.custom("VT323-Regular", size: 20))
-                    
-                    if let score = message.score {
-                        HStack(spacing: 0) {
-                            Text(score.rank)
-                                .font(.custom("VT323-Regular", size: 16))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(rankColor(score.rank))
-                                .foregroundColor(["1", "2", "3"].contains(score.rank) ? Colors.c1_400 : Colors.c0_050)
-                            Text("\(formatScore(score.score))")
-                                .font(.custom("VT323-Regular", size: 16))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 2)
-                                .background(
-                                    ZStack {
-                                        Color.clear
-                                        Rectangle()
-                                            .strokeBorder(rankColor(score.rank), lineWidth: 1)
-                                    }
-                                )
-                                .foregroundColor(Colors.c0_050)
+        VStack(alignment: .leading, spacing: 12) {
+            // Post header
+            HStack(alignment: .center, spacing: 12) {
+                // Avatar
+                Image(message.authorImage)
+                    .resizable()
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Colors.c1_400, lineWidth: 2))
+                
+                // Name and rank/score
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 8) {
+                        Text(message.author)
+                            .foregroundColor(authorNameColor)
+                            .font(.custom("VT323-Regular", size: 18))
+                        
+                        if let score = message.score {
+                            HStack(spacing: 0) {
+                                Text(score.rank)
+                                    .font(.custom("VT323-Regular", size: 14))
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 1)
+                                    .background(rankColor(score.rank))
+                                    .foregroundColor(["1", "2", "3"].contains(score.rank) ? Colors.c1_400 : Colors.c0_050)
+                                Text("\(formatScore(score.score))")
+                                    .font(.custom("VT323-Regular", size: 14))
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 1)
+                                    .background(
+                                        ZStack {
+                                            Color.clear
+                                            Rectangle()
+                                                .strokeBorder(rankColor(score.rank), lineWidth: 1)
+                                        }
+                                    )
+                                    .foregroundColor(Colors.c0_050)
+                            }
                         }
+                    }
+                    
+                    // Timestamp and location
+                    HStack(spacing: 8) {
+                        Text(formatTimestamp(message.timestamp))
+                            .font(.custom("VT323-Regular", size: 14))
+                            .foregroundColor(Colors.c0_500)
+                        
+                        Text("•")
+                            .font(.custom("VT323-Regular", size: 14))
+                            .foregroundColor(Colors.c0_500)
+                        
+                        Text(getLocation())
+                            .font(.custom("VT323-Regular", size: 14))
+                            .foregroundColor(Colors.c0_500)
                     }
                 }
                 
+                Spacer()
+            }
+            
+            // Post content
+            VStack(alignment: .leading, spacing: 8) {
                 if let content = message.content {
                     if isJumboEmoji {
                         Text(content)
@@ -124,7 +155,9 @@ struct MessageView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: message.author == "Will Corbett" ? .trailing : .leading)
+        .padding()
+        .background(Color(red: 0.15, green: 0.1, blue: 0.1))
+        .cornerRadius(8)
     }
     
     private func formatWorkoutValue(_ value: Int) -> String {
@@ -154,7 +187,7 @@ struct MessageView: View {
 }
 
 #Preview {
-    MessageView(message: Message(
+    SocialPostView(message: Message(
         author: "Will Corbett",
         authorImage: "will",
         content: "Let's crush it! 💪",
@@ -171,4 +204,3 @@ struct MessageView: View {
     .padding()
     .background(Color(red: 0.13, green: 0.08, blue: 0.08))
 } 
-
