@@ -9,11 +9,50 @@ struct Message: Identifiable {
     let timestamp: Date
     let score: (rank: String, score: Int)?
     let location: String?
+    let attachedImage: String? // Image asset name
+    var comments: [Comment]
+    var reactions: [Reaction]
     
     var formattedTime: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "Day 1(EEE), h:mm a"
         return formatter.string(from: timestamp)
+    }
+}
+
+struct Comment: Identifiable {
+    let id = UUID()
+    let author: String
+    let authorImage: String
+    let content: String
+    let timestamp: Date
+}
+
+struct Reaction: Identifiable {
+    let id = UUID()
+    let author: String
+    let authorImage: String
+    let type: ReactionType
+    let timestamp: Date
+}
+
+enum ReactionType: String, CaseIterable {
+    case like = "❤️"
+    case fire = "🔥"
+    case muscle = "💪"
+    case clap = "👏"
+    case rocket = "🚀"
+    case crown = "👑"
+    
+    var displayName: String {
+        switch self {
+        case .like: return "Like"
+        case .fire: return "Fire"
+        case .muscle: return "Muscle"
+        case .clap: return "Clap"
+        case .rocket: return "Rocket"
+        case .crown: return "Crown"
+        }
     }
 }
 

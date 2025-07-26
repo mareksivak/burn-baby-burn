@@ -83,6 +83,90 @@ struct AppConfig {
         return locations[hash % locations.count]
     }
     
+    // Helper function to generate random comments for a message
+    private static func generateComments(for messageAuthor: String, timestamp: Date) -> [Comment] {
+        let commentTemplates = [
+            "Great work! 💪",
+            "Keep it up! 🔥",
+            "Amazing progress! 👏",
+            "You're crushing it! 🚀",
+            "Inspiring! 👑",
+            "Beast mode! 💪",
+            "Unstoppable! 🔥",
+            "Legend! 👑",
+            "Motivation! 💪",
+            "Goals! 🚀",
+            "Nice try, but I'm still ahead 😏",
+            "That's cute, try harder 💅",
+            "Oh look, someone's trying to keep up 😂",
+            "Is that all you got? 🤔",
+            "My grandma lifts more than that 👵",
+            "Call me when you're serious 💪",
+            "That's adorable 🥺",
+            "Keep dreaming, buddy 😴",
+            "Maybe next time, champ 🏆",
+            "I've seen better form at a yoga class 🧘‍♂️",
+            "At least you're trying... I guess 🤷‍♂️",
+            "That's what I call a warm-up 🔥",
+            "My cat could do better 🐱",
+            "Is this a joke? 😅",
+            "You call that a workout? 💀",
+            "I'm not impressed 😤",
+            "Try again when you're ready 🎯",
+            "That's the spirit... of giving up 😂",
+            "My breakfast had more calories 🍳",
+            "Are you even trying? 🤨",
+            "That's it? That's your best? 😏"
+        ]
+        
+        let otherAuthors = authors.filter { $0.name != messageAuthor }
+        let numComments = Int.random(in: 0...3) // 0-3 comments per post
+        
+        var comments: [Comment] = []
+        for i in 0..<numComments {
+            let author = otherAuthors[i % otherAuthors.count]
+            let commentTime = timestamp.addingTimeInterval(TimeInterval.random(in: 300...3600)) // 5-60 minutes later
+            let comment = Comment(
+                author: author.name,
+                authorImage: author.imageAsset,
+                content: commentTemplates.randomElement() ?? "Great work! 💪",
+                timestamp: commentTime
+            )
+            comments.append(comment)
+        }
+        
+        return comments
+    }
+    
+    // Helper function to generate random reactions for a message
+    private static func generateReactions(for messageAuthor: String, timestamp: Date) -> [Reaction] {
+        let otherAuthors = authors.filter { $0.name != messageAuthor }
+        let numReactions = Int.random(in: 1...5) // 1-5 reactions per post
+        
+        var reactions: [Reaction] = []
+        for i in 0..<numReactions {
+            let author = otherAuthors[i % otherAuthors.count]
+            let reactionTime = timestamp.addingTimeInterval(TimeInterval.random(in: 60...1800)) // 1-30 minutes later
+            let reactionType = ReactionType.allCases.randomElement() ?? .like
+            let reaction = Reaction(
+                author: author.name,
+                authorImage: author.imageAsset,
+                type: reactionType,
+                timestamp: reactionTime
+            )
+            reactions.append(reaction)
+        }
+        
+        return reactions
+    }
+    
+    // Helper function to get random attached image
+    private static func getRandomAttachedImage() -> String? {
+        let imageOptions = ["workout", "steps", "add"] // Using existing assets
+        // 30% chance of having an attached image
+        return Bool.random() && Bool.random() && Bool.random() ? imageOptions.randomElement() : nil
+    }
+    
     // Helper function to convert config to Message model
     static func generateMessages() -> [Message] {
         // Reset all authors' scores and ranks
@@ -133,7 +217,10 @@ struct AppConfig {
                 workout: workout,
                 timestamp: timestamp,
                 score: (authorRank, authorScore),
-                location: getLocationForAuthor(config.authorName)
+                location: getLocationForAuthor(config.authorName),
+                attachedImage: getRandomAttachedImage(),
+                comments: generateComments(for: config.authorName, timestamp: timestamp),
+                reactions: generateReactions(for: config.authorName, timestamp: timestamp)
             )
         }
     }

@@ -2,6 +2,10 @@ import SwiftUI
 
 struct SocialPostView: View {
     let message: Message
+    let onCommentPosted: (String) -> Void
+    let onReactionAdded: (ReactionType) -> Void
+    
+    @State private var showCommentsDetail: Bool = false
     
     private var isJumboEmoji: Bool {
         if let content = message.content {
@@ -121,6 +125,19 @@ struct SocialPostView: View {
                     }
                 }
                 
+                // Attached image
+                if let attachedImage = message.attachedImage {
+                    Image(attachedImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxHeight: 200)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Colors.c1_400.opacity(0.3), lineWidth: 1)
+                        )
+                }
+                
                 if let workout = message.workout {
                     let card = HStack(alignment: .center, spacing: 20) {
                         HStack(alignment: .center) {
@@ -154,10 +171,63 @@ struct SocialPostView: View {
                     card
                 }
             }
+            
+            // Reactions and comments
+            ReactionsView(
+                reactions: message.reactions,
+                commentCount: message.comments.count,
+                onReactionTapped: { reactionType in
+                    onReactionAdded(reactionType)
+                },
+                onReactionLongPressed: {
+                    // Show reactions detail
+                },
+                onCommentsTapped: {
+                    showCommentsDetail = true
+                }
+            )
+            .padding(.top, 4)
+            
+            // Comment previews (show by default if there are comments)
+            if !message.comments.isEmpty {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(message.comments.prefix(2))) { comment in
+                        CommentView(comment: comment)
+                        
+                        if comment.id != message.comments.prefix(2).last?.id {
+                            Divider()
+                                .background(Colors.c0_500.opacity(0.3))
+                                .padding(.horizontal, 12)
+                        }
+                    }
+                    
+                    // Show "View all comments" if there are more than 2
+                    if message.comments.count > 2 {
+                        Button(action: {
+                            showCommentsDetail = true
+                        }) {
+                            Text("View all \(message.comments.count) comments")
+                                .font(.custom("VT323-Regular", size: 14))
+                                .foregroundColor(Colors.c0_500)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.top, 8)
+            }
         }
         .padding()
         .background(Color(red: 0.15, green: 0.1, blue: 0.1))
         .cornerRadius(8)
+        .sheet(isPresented: $showCommentsDetail) {
+            CommentsDetailView(
+                isPresented: $showCommentsDetail,
+                comments: message.comments,
+                onCommentPosted: onCommentPosted
+            )
+        }
     }
     
     private func formatWorkoutValue(_ value: Int) -> String {
@@ -187,20 +257,39 @@ struct SocialPostView: View {
 }
 
 #Preview {
-    SocialPostView(message: Message(
-        author: "Will Corbett",
-        authorImage: "will",
-        content: "Let's crush it! 💪",
-        workout: Workout(
-            type: .strengthTraining,
-            value: 160,
-            calories: 160,
-            mode: .auto
+    SocialPostView(
+        message: Message(
+            author: "Will Corbett",
+            authorImage: "will",
+            content: "Let's crush it! 💪",
+            workout: Workout(
+                type: .strengthTraining,
+                value: 160,
+                calories: 160,
+                mode: .auto
+            ),
+            timestamp: Date(),
+            score: (rank: "1", score: 2458),
+            location: "Gym",
+            attachedImage: "workout",
+            comments: [
+                Comment(author: "Nic", authorImage: "nic", content: "Great work! 💪", timestamp: Date()),
+                Comment(author: "Marek", authorImage: "marek", content: "Keep it up! 🔥", timestamp: Date()),
+                Comment(author: "Chris", authorImage: "chris-h", content: "Amazing progress! 👏", timestamp: Date())
+            ],
+            reactions: [
+                Reaction(author: "Nic", authorImage: "nic", type: .like, timestamp: Date()),
+                Reaction(author: "Marek", authorImage: "marek", type: .fire, timestamp: Date()),
+                Reaction(author: "Chris", authorImage: "chris-h", type: .muscle, timestamp: Date())
+            ]
         ),
-        timestamp: Date(),
-        score: (rank: "1", score: 2458),
-        location: "Gym"
-    ))
+        onCommentPosted: { comment in
+            print("Posted comment: \(comment)")
+        },
+        onReactionAdded: { reactionType in
+            print("Added reaction: \(reactionType)")
+        }
+    )
     .padding()
     .background(Color(red: 0.13, green: 0.08, blue: 0.08))
 } 

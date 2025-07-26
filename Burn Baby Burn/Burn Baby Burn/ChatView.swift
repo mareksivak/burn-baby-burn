@@ -121,8 +121,16 @@ struct ChatView: View {
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: 16) {
                                 ForEach(sortedMessages) { message in
-                                    SocialPostView(message: message)
-                                        .id(message.id)
+                                    SocialPostView(
+                                        message: message,
+                                        onCommentPosted: { comment in
+                                            addComment(to: message, content: comment)
+                                        },
+                                        onReactionAdded: { reactionType in
+                                            addReaction(to: message, type: reactionType)
+                                        }
+                                    )
+                                    .id(message.id)
                                 }
                             }
                             .padding()
@@ -166,13 +174,13 @@ struct ChatView: View {
                     }
                 }
                 
-                // Input bar
+                // Comment input bar (replaces chat input)
                 VStack(spacing: 0) {
                     // First row: TextField
                     TextField(
                         "",
                         text: $inputText,
-                        prompt: Text("Say hey")
+                        prompt: Text("Write a comment...")
                             .font(.custom("VT323-Regular", size: 22))
                             .foregroundColor(Colors.c0_500)
                     )
@@ -186,7 +194,8 @@ struct ChatView: View {
                     .focused($isInputFocused)
                     .submitLabel(.send)
                     .onSubmit {
-                        sendMessage()
+                        // This is now for general comments, not chat messages
+                        // We'll keep it simple for now
                     }
                     // Add space between text input and buttons
                     Spacer().frame(height: 8)
@@ -208,7 +217,10 @@ struct ChatView: View {
                         }
                         Spacer()
                         if !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Button(action: sendMessage) {
+                            Button(action: {
+                                // This could be used for general comments
+                                inputText = ""
+                            }) {
                                 Image(systemName: "paperplane.fill")
                                     .font(.system(size: 16, weight: .bold))
                                     .foregroundColor(Color(red: 0.20, green: 0.13, blue: 0.13))
@@ -306,12 +318,45 @@ struct ChatView: View {
             workout: nil,
             timestamp: Date(),
             score: messages.last(where: { $0.author == "Will Corbett" })?.score,
-            location: "Home"
+            location: "Home",
+            attachedImage: nil,
+            comments: [],
+            reactions: []
         )
         messages.append(newMessage)
         inputText = ""
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             scrollToTop()
+        }
+    }
+    
+    private func addComment(to message: Message, content: String) {
+        let newComment = Comment(
+            author: "Will Corbett",
+            authorImage: "will",
+            content: content,
+            timestamp: Date()
+        )
+        
+        if let index = messages.firstIndex(where: { $0.id == message.id }) {
+            var updatedMessage = messages[index]
+            updatedMessage.comments.append(newComment)
+            messages[index] = updatedMessage
+        }
+    }
+    
+    private func addReaction(to message: Message, type: ReactionType) {
+        let newReaction = Reaction(
+            author: "Will Corbett",
+            authorImage: "will",
+            type: type,
+            timestamp: Date()
+        )
+        
+        if let index = messages.firstIndex(where: { $0.id == message.id }) {
+            var updatedMessage = messages[index]
+            updatedMessage.reactions.append(newReaction)
+            messages[index] = updatedMessage
         }
     }
     

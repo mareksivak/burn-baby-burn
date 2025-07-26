@@ -166,7 +166,10 @@ struct MessageView: View {
         ),
         timestamp: Date(),
         score: (rank: "1", score: 2458),
-        location: "Gym"
+        location: "Gym",
+        attachedImage: nil,
+        comments: [],
+        reactions: []
     ))
     .padding()
     .background(Color(red: 0.13, green: 0.08, blue: 0.08))
