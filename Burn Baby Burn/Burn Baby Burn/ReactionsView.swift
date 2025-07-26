@@ -6,6 +6,7 @@ struct ReactionsView: View {
     let onReactionTapped: (ReactionType) -> Void
     let onReactionLongPressed: () -> Void
     let onCommentsTapped: () -> Void
+    let onAddReactionTapped: () -> Void
     
     private var groupedReactions: [ReactionType: Int] {
         Dictionary(grouping: reactions, by: { $0.type })
@@ -72,6 +73,20 @@ struct ReactionsView: View {
                                 .background(Color(red: 0.2, green: 0.13, blue: 0.13))
                                 .cornerRadius(12)
                         }
+                        
+                        // Add reaction button
+                        Button(action: {
+                            onAddReactionTapped()
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 14))
+                                .foregroundColor(Colors.c0_500)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(red: 0.2, green: 0.13, blue: 0.13))
+                                .cornerRadius(12)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     .onLongPressGesture {
                         onReactionLongPressed()
@@ -124,6 +139,9 @@ struct ReactionsView: View {
         },
         onCommentsTapped: {
             print("Tapped comments")
+        },
+        onAddReactionTapped: {
+            print("Tapped add reaction")
         }
     )
     .padding()

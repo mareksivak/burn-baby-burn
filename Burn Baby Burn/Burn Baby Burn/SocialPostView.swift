@@ -6,6 +6,7 @@ struct SocialPostView: View {
     let onReactionAdded: (ReactionType) -> Void
     
     @State private var showCommentsDetail: Bool = false
+    @State private var showReactionsDetail: Bool = false
     
     private var isJumboEmoji: Bool {
         if let content = message.content {
@@ -180,10 +181,13 @@ struct SocialPostView: View {
                     onReactionAdded(reactionType)
                 },
                 onReactionLongPressed: {
-                    // Show reactions detail
+                    showReactionsDetail = true
                 },
                 onCommentsTapped: {
                     showCommentsDetail = true
+                },
+                onAddReactionTapped: {
+                    showReactionsDetail = true
                 }
             )
             .padding(.top, 4)
@@ -226,6 +230,13 @@ struct SocialPostView: View {
                 isPresented: $showCommentsDetail,
                 comments: message.comments,
                 onCommentPosted: onCommentPosted
+            )
+        }
+        .sheet(isPresented: $showReactionsDetail) {
+            ReactionsDetailView(
+                isPresented: $showReactionsDetail,
+                reactions: message.reactions,
+                onReactionAdded: onReactionAdded
             )
         }
     }
