@@ -9,7 +9,7 @@ struct Message: Identifiable {
     let timestamp: Date
     let score: (rank: String, score: Int)?
     let location: String?
-    let attachedImage: String? // Image asset name
+    let attachedImages: [String] // Array of image asset names (0-5 images)
     var comments: [Comment]
     var reactions: [Reaction]
     
@@ -62,6 +62,27 @@ struct Workout: Identifiable {
     let value: Int
     let calories: Int
     let mode: WorkoutMode
+    var items: [WorkoutItem] = []
+    
+    var finalScore: Int {
+        var multiplier: Double = 1.0
+        for item in items {
+            switch item.item.effect {
+            case .multiplyNextWorkout(let itemMultiplier):
+                multiplier *= itemMultiplier
+            default:
+                break
+            }
+        }
+        return Int(Double(calories) * multiplier)
+    }
+}
+
+struct WorkoutItem: Identifiable {
+    let id = UUID()
+    let item: Item
+    let usedBy: String // Player name who used the item
+    let usedOn: String // Player name whose workout was affected
 }
 
 enum WorkoutType: String {

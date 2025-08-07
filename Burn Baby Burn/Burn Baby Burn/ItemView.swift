@@ -19,6 +19,7 @@ enum ItemRarity: String, CaseIterable {
 
 enum ItemEffect {
     case deductPoints(points: Int)
+    case multiplyNextWorkout(multiplier: Double)
     // Future effects can be added here
     // case swapWorkout
     // case resetScores
@@ -451,6 +452,27 @@ class ItemManager {
                 imageName: "item-omnomnom",
                 rarity: .epic,
                 effect: .deductPoints(points: 300)
+            ),
+            Item(
+                name: "Arnold's Pills",
+                description: "Multiplies next workout by 100%.",
+                imageName: "item-arnolds-pills",
+                rarity: .legendary,
+                effect: .multiplyNextWorkout(multiplier: 2.0)
+            ),
+            Item(
+                name: "Roid Rage",
+                description: "Multiplies next workout by 50%.",
+                imageName: "item-roid-rage",
+                rarity: .epic,
+                effect: .multiplyNextWorkout(multiplier: 1.5)
+            ),
+            Item(
+                name: "Quicksand",
+                description: "Next workout is reduced by 25%.",
+                imageName: "item-quicksand",
+                rarity: .common,
+                effect: .multiplyNextWorkout(multiplier: 0.75)
             ),
             Item(
                 name: "Energy Boost",

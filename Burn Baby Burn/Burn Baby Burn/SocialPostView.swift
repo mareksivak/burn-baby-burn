@@ -7,6 +7,7 @@ struct SocialPostView: View {
     
     @State private var showCommentsDetail: Bool = false
     @State private var showReactionsDetail: Bool = false
+    @State private var showWorkoutDetail: Bool = false
     
     private var isJumboEmoji: Bool {
         if let content = message.content {
@@ -126,50 +127,96 @@ struct SocialPostView: View {
                     }
                 }
                 
-                // Attached image
-                if let attachedImage = message.attachedImage {
-                    Image(attachedImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
+                // Attached images
+                if !message.attachedImages.isEmpty {
+                    if message.attachedImages.count == 1 {
+                        // Single image
+                        Image(message.attachedImages[0])
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: 200)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Colors.c1_400.opacity(0.3), lineWidth: 1)
+                            )
+                    } else {
+                        // Multiple images - display in a grid
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: min(message.attachedImages.count, 3)), spacing: 4) {
+                            ForEach(Array(message.attachedImages.enumerated()), id: \.offset) { index, imageName in
+                                Image(imageName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(height: 120)
+                                    .clipped()
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Colors.c1_400.opacity(0.3), lineWidth: 1)
+                                    )
+                            }
+                        }
                         .frame(maxHeight: 200)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Colors.c1_400.opacity(0.3), lineWidth: 1)
-                        )
+                    }
                 }
                 
                 if let workout = message.workout {
-                    let card = HStack(alignment: .center, spacing: 20) {
-                        HStack(alignment: .center) {
-                            Image(systemName: workout.type.icon)
-                                .font(.system(size: 24))
-                            Text(formatWorkoutValue(workout.value))
-                                .font(.custom("PressStart2P-Regular", size: getWorkoutValueFontSize(workout.value)))
-                        }
-                        VStack(alignment: .trailing) {
-                            Text("\(formatWorkoutValue(workout.calories)) Cal")
-                                .font(.custom("VT323-Regular", size: 16))
-                        }
-                    }
-                    .foregroundColor(Colors.c0_050)
-                    .padding()
-                    .background(Colors.c1_400)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .overlay(
-                        Group {
-                            if workout.mode == .manual {
-                                Text("MANUAL")
-                                    .font(.custom("VT323-Regular", size: 14))
-                                    .foregroundColor(Colors.c0_500)
-                                    .padding(.vertical, 1)
-                                    .padding(.horizontal, 4)
-                                    .background(Color(red: 0.3, green: 0.2, blue: 0.1))
-                                    .cornerRadius(0)
+                    VStack(spacing: 8) {
+                        let card = HStack(alignment: .center, spacing: 20) {
+                            HStack(alignment: .center) {
+                                Image(systemName: workout.type.icon)
+                                    .font(.system(size: 24))
+                                Text(formatWorkoutValue(workout.finalScore))
+                                    .font(.custom("PressStart2P-Regular", size: getWorkoutValueFontSize(workout.finalScore)))
                             }
-                        }, alignment: .bottomTrailing
-                    )
-                    card
+                            VStack(alignment: .trailing) {
+                                Text("\(formatWorkoutValue(workout.calories)) Cal")
+                                    .font(.custom("VT323-Regular", size: 16))
+                            }
+                        }
+                        .foregroundColor(Colors.c0_050)
+                        .padding()
+                        .background(Colors.c1_400)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .overlay(
+                            Group {
+                                if workout.mode == .manual {
+                                    Text("MANUAL")
+                                        .font(.custom("VT323-Regular", size: 14))
+                                        .foregroundColor(Colors.c0_500)
+                                        .padding(.vertical, 1)
+                                        .padding(.horizontal, 4)
+                                        .background(Color(red: 0.3, green: 0.2, blue: 0.1))
+                                        .cornerRadius(0)
+                                }
+                            }, alignment: .bottomTrailing
+                        )
+                        
+                        // Show items if any
+                        if !workout.items.isEmpty {
+                            HStack(spacing: 8) {
+                                ForEach(workout.items) { workoutItem in
+                                    VStack(spacing: 2) {
+                                        Image(workoutItem.item.imageName)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 24, height: 24)
+                                        Text(workoutItem.usedBy)
+                                            .font(.custom("VT323-Regular", size: 10))
+                                            .foregroundColor(Colors.c0_500)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        Button(action: {
+                            showWorkoutDetail = true
+                        }) {
+                            card
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
             }
             
@@ -239,6 +286,14 @@ struct SocialPostView: View {
                 onReactionAdded: onReactionAdded
             )
         }
+        .sheet(isPresented: $showWorkoutDetail) {
+            WorkoutDetailView(
+                message: message,
+                isPresented: $showWorkoutDetail,
+                onCommentPosted: onCommentPosted,
+                onReactionAdded: onReactionAdded
+            )
+        }
     }
     
     private func formatWorkoutValue(_ value: Int) -> String {
@@ -282,7 +337,7 @@ struct SocialPostView: View {
             timestamp: Date(),
             score: (rank: "1", score: 2458),
             location: "Gym",
-            attachedImage: "workout",
+            attachedImages: ["photo1", "photo3", "photo5"],
             comments: [
                 Comment(author: "Nic", authorImage: "nic", content: "Great work! 💪", timestamp: Date()),
                 Comment(author: "Marek", authorImage: "marek", content: "Keep it up! 🔥", timestamp: Date()),

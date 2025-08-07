@@ -9,13 +9,21 @@ struct RacetrackView: View {
     @State private var remainingTime: TimeInterval
     
     // Player data with actual scores from workouts
-    private let players = [
-        Player(name: "Will Corbett", image: "will", score: 3268, isCurrentPlayer: true),
-        Player(name: "Nic", image: "nic", score: 3280, isCurrentPlayer: false),
-        Player(name: "Marek", image: "marek", score: 2890, isCurrentPlayer: false),
-        Player(name: "Christopher Schrader", image: "chris-h", score: 2310, isCurrentPlayer: false),
-        Player(name: "Ziga Porenta", image: "paul", score: 1440, isCurrentPlayer: false)
-    ]
+    private var players: [Player] {
+        let messages = AppConfig.generateMessages()
+        let playerScores = Dictionary(grouping: messages.filter { $0.score != nil }, by: { $0.author })
+            .mapValues { messages in
+                messages.compactMap { $0.score?.score }.max() ?? 0
+            }
+        
+        return [
+            Player(name: "Will Corbett", image: "will", score: playerScores["Will Corbett"] ?? 0, isCurrentPlayer: true),
+            Player(name: "Nic", image: "nic", score: playerScores["Nic"] ?? 0, isCurrentPlayer: false),
+            Player(name: "Marek", image: "marek", score: playerScores["Marek"] ?? 0, isCurrentPlayer: false),
+            Player(name: "Christopher Schrader", image: "chris-h", score: playerScores["Christopher Schrader"] ?? 0, isCurrentPlayer: false),
+            Player(name: "Ziga Porenta", image: "paul", score: playerScores["Ziga Porenta"] ?? 0, isCurrentPlayer: false)
+        ]
+    }
     
     // Messages for workout data
     private let messages = AppConfig.generateMessages()

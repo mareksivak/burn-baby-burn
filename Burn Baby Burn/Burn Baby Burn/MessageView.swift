@@ -167,7 +167,7 @@ struct MessageView: View {
         timestamp: Date(),
         score: (rank: "1", score: 2458),
         location: "Gym",
-        attachedImage: nil,
+        attachedImages: [],
         comments: [],
         reactions: []
     ))

@@ -5,10 +5,6 @@ struct ChatView: View {
     @State private var remainingTime: TimeInterval
     @State private var messages: [Message] = AppConfig.generateMessages()
     @State private var scrollProxy: ScrollViewProxy? = nil
-    @State private var inputText: String = ""
-    @FocusState private var isInputFocused: Bool
-    @State private var keyboardIsVisible: Bool = false
-    @State private var keyboardHeight: CGFloat = 0
     @State private var showLeaderboard: Bool = false
     @State private var showItemModal: Bool = false
     @State private var playersForItems: [Player] = []
@@ -34,9 +30,6 @@ struct ChatView: View {
         ZStack {
             Color(red: 0.13, green: 0.08, blue: 0.08)
                 .ignoresSafeArea()
-                .onTapGesture {
-                    isInputFocused = false
-                }
             
             VStack(spacing: 0) {
                 // Top bar
@@ -124,17 +117,18 @@ struct ChatView: View {
                                     SocialPostView(
                                         message: message,
                                         onCommentPosted: { comment in
-                                            addComment(to: message, content: comment)
+                                            // Static mode - comments are not added dynamically
+                                            print("Comment posted (static mode): \(comment)")
                                         },
                                         onReactionAdded: { reactionType in
-                                            addReaction(to: message, type: reactionType)
+                                            // Static mode - reactions are not added dynamically
+                                            print("Reaction added (static mode): \(reactionType)")
                                         }
                                     )
                                     .id(message.id)
                                 }
                             }
                             .padding()
-                            .padding(.bottom, keyboardHeight)
                         }
                         .onAppear {
                             scrollProxy = proxy
@@ -143,14 +137,7 @@ struct ChatView: View {
                                 scrollProxy?.scrollTo(firstMessage.id, anchor: .top)
                             }
                         }
-                        .gesture(
-                            DragGesture()
-                                .onEnded { gesture in
-                                    if gesture.translation.height > 50 {
-                                        isInputFocused = false
-                                    }
-                                }
-                        )
+
                     }
                     
                     // Floating item button
@@ -174,70 +161,7 @@ struct ChatView: View {
                     }
                 }
                 
-                // Comment input bar (replaces chat input)
-                VStack(spacing: 0) {
-                    // First row: TextField
-                    TextField(
-                        "",
-                        text: $inputText,
-                        prompt: Text("Write a comment...")
-                            .font(.custom("VT323-Regular", size: 22))
-                            .foregroundColor(Colors.c0_500)
-                    )
-                    .font(.custom("VT323-Regular", size: 22))
-                    .foregroundColor(Colors.c0_050)
-                    .padding(.horizontal)
-                    .padding(.vertical, 12)
-                    .background(Color(red: 0.20, green: 0.13, blue: 0.13))
-                    .frame(maxWidth: .infinity, minHeight: 44, maxHeight: 44)
-                    .cornerRadius(0)
-                    .focused($isInputFocused)
-                    .submitLabel(.send)
-                    .onSubmit {
-                        // This is now for general comments, not chat messages
-                        // We'll keep it simple for now
-                    }
-                    // Add space between text input and buttons
-                    Spacer().frame(height: 8)
-                    // Second row: Actions and send arrow
-                    HStack(spacing: 24) {
-                        Button(action: {}) {
-                            Image("workout")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 20, height: 20)
-                                .frame(width: 38, height: 28)
-                        }
-                        Button(action: {}) {
-                            Image("add")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 20, height: 20)
-                                .frame(width: 38, height: 28)
-                        }
-                        Spacer()
-                        if !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Button(action: {
-                                // This could be used for general comments
-                                inputText = ""
-                            }) {
-                                Image(systemName: "paperplane.fill")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(Color(red: 0.20, green: 0.13, blue: 0.13))
-                                    .frame(width: 38, height: 28)
-                                    .background(Colors.c2_500)
-                            }
-                        }
-                    }
-                    .foregroundColor(Colors.c0_050)
-                    .padding(.horizontal)
-                    .frame(maxWidth: .infinity, minHeight: 28, maxHeight: 28)
-                    .background(Color(red: 0.20, green: 0.13, blue: 0.13))
-                }
-                .background(Color(red: 0.20, green: 0.13, blue: 0.13))
-                .safeAreaInset(edge: .bottom) {
-                    Color.clear.frame(height: keyboardIsVisible ? 12 : 0)
-                }
+
             }
         }
         .overlay {
@@ -271,22 +195,6 @@ struct ChatView: View {
         .onAppear {
             startTimer()
             self.playersForItems = self.extractPlayers()
-            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { _ in
-                keyboardIsVisible = true
-                if let keyboardFrame = (UIApplication.shared.windows.first?.rootViewController?.view.window?.inputViewController?.view.frame) {
-                    keyboardHeight = keyboardFrame.height
-                } else {
-                    keyboardHeight = 300 // fallback
-                }
-            }
-            NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
-                keyboardIsVisible = false
-                keyboardHeight = 0
-            }
-        }
-        .onDisappear {
-            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-            NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
         }
     }
     
@@ -308,57 +216,10 @@ struct ChatView: View {
         }
     }
     
-    private func sendMessage() {
-        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        let newMessage = Message(
-            author: "Will Corbett",
-            authorImage: "will",
-            content: trimmed,
-            workout: nil,
-            timestamp: Date(),
-            score: messages.last(where: { $0.author == "Will Corbett" })?.score,
-            location: "Home",
-            attachedImage: nil,
-            comments: [],
-            reactions: []
-        )
-        messages.append(newMessage)
-        inputText = ""
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            scrollToTop()
-        }
-    }
+
     
-    private func addComment(to message: Message, content: String) {
-        let newComment = Comment(
-            author: "Will Corbett",
-            authorImage: "will",
-            content: content,
-            timestamp: Date()
-        )
-        
-        if let index = messages.firstIndex(where: { $0.id == message.id }) {
-            var updatedMessage = messages[index]
-            updatedMessage.comments.append(newComment)
-            messages[index] = updatedMessage
-        }
-    }
-    
-    private func addReaction(to message: Message, type: ReactionType) {
-        let newReaction = Reaction(
-            author: "Will Corbett",
-            authorImage: "will",
-            type: type,
-            timestamp: Date()
-        )
-        
-        if let index = messages.firstIndex(where: { $0.id == message.id }) {
-            var updatedMessage = messages[index]
-            updatedMessage.reactions.append(newReaction)
-            messages[index] = updatedMessage
-        }
-    }
+    // Static mode - comments and reactions are predefined
+    // These functions are disabled for static testing
     
     private func extractPlayers() -> [Player] {
         let authors = Array(Set(messages.map { $0.author }))
