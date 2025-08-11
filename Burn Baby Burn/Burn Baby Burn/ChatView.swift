@@ -117,12 +117,28 @@ struct ChatView: View {
                                     SocialPostView(
                                         message: message,
                                         onCommentPosted: { comment in
-                                            // Static mode - comments are not added dynamically
-                                            print("Comment posted (static mode): \(comment)")
+                                            // Add comment to the message
+                                            if let index = messages.firstIndex(where: { $0.id == message.id }) {
+                                                let newComment = Comment(
+                                                    author: "Will Corbett",
+                                                    authorImage: "will",
+                                                    content: comment,
+                                                    timestamp: Date()
+                                                )
+                                                messages[index].comments.append(newComment)
+                                            }
                                         },
                                         onReactionAdded: { reactionType in
-                                            // Static mode - reactions are not added dynamically
-                                            print("Reaction added (static mode): \(reactionType)")
+                                            // Add reaction to the message
+                                            if let index = messages.firstIndex(where: { $0.id == message.id }) {
+                                                let newReaction = Reaction(
+                                                    author: "Will Corbett",
+                                                    authorImage: "will",
+                                                    type: reactionType,
+                                                    timestamp: Date()
+                                                )
+                                                messages[index].reactions.append(newReaction)
+                                            }
                                         }
                                     )
                                     .id(message.id)

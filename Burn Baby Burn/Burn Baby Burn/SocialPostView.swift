@@ -8,6 +8,36 @@ struct SocialPostView: View {
     @State private var showCommentsDetail: Bool = false
     @State private var showReactionsDetail: Bool = false
     @State private var showWorkoutDetail: Bool = false
+    @State private var currentMessage: Message // Local mutable copy
+    
+    init(message: Message, onCommentPosted: @escaping (String) -> Void, onReactionAdded: @escaping (ReactionType) -> Void) {
+        self.message = message
+        self.onCommentPosted = onCommentPosted
+        self.onReactionAdded = onReactionAdded
+        self._currentMessage = State(initialValue: message)
+    }
+    
+    private func addReaction(_ reactionType: ReactionType) {
+        let newReaction = Reaction(
+            author: "Will Corbett", // Current user
+            authorImage: "will", // Current user's image
+            type: reactionType,
+            timestamp: Date()
+        )
+        currentMessage.reactions.append(newReaction)
+        onReactionAdded(reactionType)
+    }
+    
+    private func addComment(_ content: String) {
+        let newComment = Comment(
+            author: "Will Corbett", // Current user
+            authorImage: "will", // Current user's image
+            content: content,
+            timestamp: Date()
+        )
+        currentMessage.comments.append(newComment)
+        onCommentPosted(content)
+    }
     
     private var isJumboEmoji: Bool {
         if let content = message.content {
@@ -222,10 +252,10 @@ struct SocialPostView: View {
             
             // Reactions and comments
             ReactionsView(
-                reactions: message.reactions,
-                commentCount: message.comments.count,
+                reactions: currentMessage.reactions,
+                commentCount: currentMessage.comments.count,
                 onReactionTapped: { reactionType in
-                    onReactionAdded(reactionType)
+                    addReaction(reactionType)
                 },
                 onReactionLongPressed: {
                     showReactionsDetail = true
@@ -240,12 +270,14 @@ struct SocialPostView: View {
             .padding(.top, 4)
             
             // Comment previews (show by default if there are comments)
-            if !message.comments.isEmpty {
+            if !currentMessage.comments.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(message.comments.prefix(2))) { comment in
+                    // Show last 2 comments (most recent)
+                    let lastComments = Array(currentMessage.comments.suffix(2))
+                    ForEach(lastComments) { comment in
                         CommentView(comment: comment)
                         
-                        if comment.id != message.comments.prefix(2).last?.id {
+                        if comment.id != lastComments.last?.id {
                             Divider()
                                 .background(Colors.c0_500.opacity(0.3))
                                 .padding(.horizontal, 12)
@@ -253,11 +285,11 @@ struct SocialPostView: View {
                     }
                     
                     // Show "View all comments" if there are more than 2
-                    if message.comments.count > 2 {
+                    if currentMessage.comments.count > 2 {
                         Button(action: {
                             showCommentsDetail = true
                         }) {
-                            Text("View all \(message.comments.count) comments")
+                            Text("View all \(currentMessage.comments.count) comments")
                                 .font(.custom("VT323-Regular", size: 14))
                                 .foregroundColor(Colors.c0_500)
                                 .padding(.horizontal, 12)
@@ -275,23 +307,31 @@ struct SocialPostView: View {
         .sheet(isPresented: $showCommentsDetail) {
             CommentsDetailView(
                 isPresented: $showCommentsDetail,
-                comments: message.comments,
-                onCommentPosted: onCommentPosted
+                comments: currentMessage.comments,
+                onCommentPosted: { comment in
+                    addComment(comment)
+                }
             )
         }
         .sheet(isPresented: $showReactionsDetail) {
             ReactionsDetailView(
                 isPresented: $showReactionsDetail,
-                reactions: message.reactions,
-                onReactionAdded: onReactionAdded
+                reactions: currentMessage.reactions,
+                onReactionAdded: { reactionType in
+                    addReaction(reactionType)
+                }
             )
         }
         .sheet(isPresented: $showWorkoutDetail) {
             WorkoutDetailView(
-                message: message,
+                message: currentMessage,
                 isPresented: $showWorkoutDetail,
-                onCommentPosted: onCommentPosted,
-                onReactionAdded: onReactionAdded
+                onCommentPosted: { comment in
+                    addComment(comment)
+                },
+                onReactionAdded: { reactionType in
+                    addReaction(reactionType)
+                }
             )
         }
     }

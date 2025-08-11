@@ -25,98 +25,109 @@ struct ReactionsView: View {
         }
     }
     
+    private func getCurrentPlayerReactionCount(_ reactionType: ReactionType) -> Int {
+        reactions.filter { reaction in
+            reaction.type == reactionType && reaction.author == "Will Corbett"
+        }.count
+    }
+    
     var body: some View {
-        if !reactions.isEmpty || commentCount > 0 {
+        HStack(spacing: 8) {
+            // Reactions
             HStack(spacing: 8) {
-                // Reactions
+                // Show existing reactions if any
                 if !reactions.isEmpty {
-                    HStack(spacing: 8) {
-                        ForEach(sortedReactionTypes.prefix(4), id: \.self) { reactionType in
-                            Button(action: {
-                                onReactionTapped(reactionType)
-                            }) {
-                                HStack(spacing: 2) {
-                                    Text(reactionType.rawValue)
-                                        .font(.system(size: 16))
-                                    
-                                    if let count = groupedReactions[reactionType], count > 1 {
-                                        Text("\(count)")
-                                            .font(.custom("VT323-Regular", size: 12))
-                                            .foregroundColor(Colors.c0_050)
-                                    }
-                                }
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    hasCurrentPlayerReaction(reactionType) 
-                                        ? Colors.c2_500.opacity(0.3) 
-                                        : Color(red: 0.2, green: 0.13, blue: 0.13)
-                                )
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(
-                                            hasCurrentPlayerReaction(reactionType) ? Colors.c2_500 : Color.clear,
-                                            lineWidth: 2
-                                        )
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                        
-                        if reactions.count > 4 {
-                            Text("+\(reactions.count - 4)")
-                                .font(.custom("VT323-Regular", size: 12))
-                                .foregroundColor(Colors.c0_500)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color(red: 0.2, green: 0.13, blue: 0.13))
-                                .cornerRadius(12)
-                        }
-                        
-                        // Add reaction button
+                    ForEach(sortedReactionTypes.prefix(4), id: \.self) { reactionType in
                         Button(action: {
-                            onAddReactionTapped()
+                            // Tapping on a reaction adds another one of the same type
+                            onReactionTapped(reactionType)
                         }) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 14))
-                                .foregroundColor(Colors.c0_500)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color(red: 0.2, green: 0.13, blue: 0.13))
-                                .cornerRadius(12)
+                            HStack(spacing: 2) {
+                                Text(reactionType.rawValue)
+                                    .font(.system(size: 16))
+                                
+                                // Always show count, even if it's 1
+                                let totalCount = groupedReactions[reactionType] ?? 0
+                                let userCount = getCurrentPlayerReactionCount(reactionType)
+                                
+                                if totalCount > 0 {
+                                    Text("\(totalCount)")
+                                        .font(.custom("VT323-Regular", size: 12))
+                                        .foregroundColor(userCount > 0 ? Colors.c2_500 : Colors.c0_050)
+                                }
+                            }
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(
+                                hasCurrentPlayerReaction(reactionType) 
+                                    ? Colors.c2_500.opacity(0.3) 
+                                    : Color(red: 0.2, green: 0.13, blue: 0.13)
+                            )
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(
+                                        hasCurrentPlayerReaction(reactionType) ? Colors.c2_500 : Color.clear,
+                                        lineWidth: 2
+                                    )
+                            )
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
-                    .onLongPressGesture {
-                        onReactionLongPressed()
+                    
+                    if reactions.count > 4 {
+                        Text("+\(reactions.count - 4)")
+                            .font(.custom("VT323-Regular", size: 12))
+                            .foregroundColor(Colors.c0_500)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color(red: 0.2, green: 0.13, blue: 0.13))
+                            .cornerRadius(12)
                     }
                 }
                 
-                Spacer()
-                
-                // Comments
-                if commentCount > 0 {
-                    Button(action: {
-                        onCommentsTapped()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bubble.left")
-                                .font(.system(size: 14))
-                                .foregroundColor(Colors.c0_500)
-                            
-                            Text("\(commentCount)")
-                                .font(.custom("VT323-Regular", size: 14))
-                                .foregroundColor(Colors.c0_500)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                // Add reaction button (always visible)
+                Button(action: {
+                    onAddReactionTapped()
+                }) {
+                    Image(systemName: "heart")
+                        .font(.system(size: 14))
+                        .foregroundColor(Colors.c0_500)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
                         .background(Color(red: 0.2, green: 0.13, blue: 0.13))
                         .cornerRadius(12)
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
+                .buttonStyle(PlainButtonStyle())
             }
+            .onLongPressGesture {
+                onReactionLongPressed()
+            }
+            
+            Spacer()
+            
+            // Comments button (always visible)
+            Button(action: {
+                onCommentsTapped()
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "bubble.left")
+                        .font(.system(size: 14))
+                        .foregroundColor(Colors.c0_500)
+                    
+                    // Only show comment count if there are comments
+                    if commentCount > 0 {
+                        Text("\(commentCount)")
+                            .font(.custom("VT323-Regular", size: 14))
+                            .foregroundColor(Colors.c0_500)
+                    }
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color(red: 0.2, green: 0.13, blue: 0.13))
+                .cornerRadius(12)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
     }
 }

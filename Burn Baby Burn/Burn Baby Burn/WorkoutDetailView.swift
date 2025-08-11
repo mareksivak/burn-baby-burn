@@ -8,6 +8,37 @@ struct WorkoutDetailView: View {
     
     @State private var showCommentsDetail: Bool = false
     @State private var showReactionsDetail: Bool = false
+    @State private var currentMessage: Message // Local mutable copy
+    
+    init(message: Message, isPresented: Binding<Bool>, onCommentPosted: @escaping (String) -> Void, onReactionAdded: @escaping (ReactionType) -> Void) {
+        self.message = message
+        self._isPresented = isPresented
+        self.onCommentPosted = onCommentPosted
+        self.onReactionAdded = onReactionAdded
+        self._currentMessage = State(initialValue: message)
+    }
+    
+    private func addReaction(_ reactionType: ReactionType) {
+        let newReaction = Reaction(
+            author: "Will Corbett", // Current user
+            authorImage: "will", // Current user's image
+            type: reactionType,
+            timestamp: Date()
+        )
+        currentMessage.reactions.append(newReaction)
+        onReactionAdded(reactionType)
+    }
+    
+    private func addComment(_ content: String) {
+        let newComment = Comment(
+            author: "Will Corbett", // Current user
+            authorImage: "will", // Current user's image
+            content: content,
+            timestamp: Date()
+        )
+        currentMessage.comments.append(newComment)
+        onCommentPosted(content)
+    }
     
     private var authorNameColor: Color {
         guard let score = message.score, let rankInt = Int(score.rank) else { return Colors.c2_500 }
@@ -287,17 +318,17 @@ struct WorkoutDetailView: View {
                             Button(action: {
                                 showReactionsDetail = true
                             }) {
-                                Text("\(message.reactions.count)")
+                                Text("\(currentMessage.reactions.count)")
                                     .font(.custom("VT323-Regular", size: 16))
                                     .foregroundColor(Colors.c0_500)
                             }
                         }
                         .padding(.horizontal)
                         
-                        if !message.reactions.isEmpty {
+                        if !currentMessage.reactions.isEmpty {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
-                                    ForEach(message.reactions) { reaction in
+                                    ForEach(currentMessage.reactions) { reaction in
                                         VStack(spacing: 4) {
                                             Image(reaction.authorImage)
                                                 .resizable()
@@ -332,30 +363,32 @@ struct WorkoutDetailView: View {
                             Button(action: {
                                 showCommentsDetail = true
                             }) {
-                                Text("\(message.comments.count)")
+                                Text("\(currentMessage.comments.count)")
                                     .font(.custom("VT323-Regular", size: 16))
                                     .foregroundColor(Colors.c0_500)
                             }
                         }
                         .padding(.horizontal)
                         
-                        if !message.comments.isEmpty {
+                        if !currentMessage.comments.isEmpty {
                             VStack(spacing: 0) {
-                                ForEach(Array(message.comments.prefix(3))) { comment in
+                                // Show last 3 comments (most recent)
+                                let lastComments = Array(currentMessage.comments.suffix(3))
+                                ForEach(lastComments) { comment in
                                     CommentView(comment: comment)
                                     
-                                    if comment.id != message.comments.prefix(3).last?.id {
+                                    if comment.id != lastComments.last?.id {
                                         Divider()
                                             .background(Colors.c0_500.opacity(0.3))
                                             .padding(.horizontal, 12)
                                     }
                                 }
                                 
-                                if message.comments.count > 3 {
+                                if currentMessage.comments.count > 3 {
                                     Button(action: {
                                         showCommentsDetail = true
                                     }) {
-                                        Text("View all \(message.comments.count) comments")
+                                        Text("View all \(currentMessage.comments.count) comments")
                                             .font(.custom("VT323-Regular", size: 14))
                                             .foregroundColor(Colors.c0_500)
                                             .padding(.horizontal, 12)
@@ -400,15 +433,19 @@ struct WorkoutDetailView: View {
         .sheet(isPresented: $showCommentsDetail) {
             CommentsDetailView(
                 isPresented: $showCommentsDetail,
-                comments: message.comments,
-                onCommentPosted: onCommentPosted
+                comments: currentMessage.comments,
+                onCommentPosted: { comment in
+                    addComment(comment)
+                }
             )
         }
         .sheet(isPresented: $showReactionsDetail) {
             ReactionsDetailView(
                 isPresented: $showReactionsDetail,
-                reactions: message.reactions,
-                onReactionAdded: onReactionAdded
+                reactions: currentMessage.reactions,
+                onReactionAdded: { reactionType in
+                    addReaction(reactionType)
+                }
             )
         }
     }

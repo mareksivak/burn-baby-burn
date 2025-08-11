@@ -11,7 +11,7 @@ struct Message: Identifiable {
     let location: String?
     let attachedImages: [String] // Array of image asset names (0-5 images)
     var comments: [Comment]
-    var reactions: [Reaction]
+    var reactions: [Reaction] // Made mutable for dynamic reactions
     
     var formattedTime: String {
         let formatter = DateFormatter()

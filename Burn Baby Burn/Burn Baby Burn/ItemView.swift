@@ -456,7 +456,7 @@ class ItemManager {
             Item(
                 name: "Arnold's Pills",
                 description: "Multiplies next workout by 100%.",
-                imageName: "item-arnolds-pills",
+                imageName: "item-arnoldpills",
                 rarity: .legendary,
                 effect: .multiplyNextWorkout(multiplier: 2.0)
             ),
