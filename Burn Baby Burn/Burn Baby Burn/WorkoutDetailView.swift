@@ -68,6 +68,21 @@ struct WorkoutDetailView: View {
         return formatter.string(from: date)
     }
     
+    private func getWorkoutIcon(for workoutType: WorkoutType) -> String {
+        switch workoutType {
+        case .strengthTraining:
+            return "figure.strengthtraining.traditional"
+        case .running:
+            return "figure.run"
+        case .walking:
+            return "figure.walk"
+        case .coreTraining:
+            return "figure.core.training"
+        case .yoga:
+            return "figure.yoga"
+        }
+    }
+    
     private func formatWorkoutValue(_ value: Int) -> String {
         if value >= 1000 {
             let kValue = Double(value) / 1000.0
@@ -173,95 +188,68 @@ struct WorkoutDetailView: View {
                                 .foregroundColor(Colors.c0_500)
                                 .padding(.horizontal)
                             
-                            VStack(spacing: 20) {
-                                // Workout type and value
-                                HStack(alignment: .center, spacing: 24) {
-                                    VStack(spacing: 8) {
-                                        Image(systemName: workout.type.icon)
-                                            .font(.system(size: 32))
-                                            .foregroundColor(Colors.c2_500)
-                                        Text(workout.type.rawValue)
-                                            .font(.custom("VT323-Regular", size: 16))
-                                            .foregroundColor(Colors.c0_500)
-                                            .multilineTextAlignment(.center)
+                            // Workout details
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Image(systemName: getWorkoutIcon(for: workout.type))
+                                        .font(.system(size: 32))
+                                        .foregroundColor(Colors.c0_050)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("\(workout.value)")
+                                            .font(.custom("PressStart2P-Regular", size: 32))
+                                            .foregroundColor(Colors.c0_050)
+                                        
+                                        Text("\(workout.calories) Cal")
+                                            .font(.custom("VT323-Regular", size: 20))
+                                            .foregroundColor(Colors.c0_050)
                                     }
                                     
-                                    VStack(spacing: 4) {
-                                        Text(formatWorkoutValue(workout.finalScore))
-                                            .font(.custom("PressStart2P-Regular", size: getWorkoutValueFontSize(workout.finalScore)))
-                                            .foregroundColor(Colors.c0_050)
-                                        Text("POINTS")
-                                            .font(.custom("VT323-Regular", size: 12))
-                                            .foregroundColor(Colors.c0_500)
-                                    }
+                                    Spacer()
                                     
-                                    VStack(spacing: 4) {
-                                        Text("\(formatWorkoutValue(workout.calories))")
-                                            .font(.custom("PressStart2P-Regular", size: 24))
+                                    // Only show MANUAL badge
+                                    if workout.mode == .manual {
+                                        Text("MANUAL")
+                                            .font(.custom("VT323-Regular", size: 14))
                                             .foregroundColor(Colors.c0_050)
-                                        Text("CALORIES")
-                                            .font(.custom("VT323-Regular", size: 12))
-                                            .foregroundColor(Colors.c0_500)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 6)
+                                            .background(Color(red: 0.4, green: 0.26, blue: 0.26))
+                                            .cornerRadius(6)
                                     }
                                 }
-                                .padding()
-                                .background(Colors.c1_400)
-                                .cornerRadius(8)
                                 
-                                // Items section
+                                // Display workout items if any
                                 if !workout.items.isEmpty {
-                                    VStack(alignment: .leading, spacing: 12) {
-                                        Text("ITEMS USED")
-                                            .font(.custom("VT323-Regular", size: 16))
-                                            .foregroundColor(Colors.c0_500)
-                                            .padding(.horizontal)
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Items Used")
+                                            .font(.custom("VT323-Regular", size: 14))
+                                            .foregroundColor(Colors.c0_050)
+                                            .padding(.bottom, 4)
                                         
-                                        VStack(spacing: 8) {
+                                        HStack(spacing: 16) {
                                             ForEach(workout.items) { workoutItem in
-                                                HStack(spacing: 12) {
+                                                VStack(spacing: 6) {
                                                     Image(workoutItem.item.imageName)
                                                         .resizable()
                                                         .aspectRatio(contentMode: .fit)
-                                                        .frame(width: 32, height: 32)
+                                                        .frame(width: 40, height: 40)
                                                     
-                                                    VStack(alignment: .leading, spacing: 2) {
-                                                        Text(workoutItem.item.name)
-                                                            .font(.custom("VT323-Regular", size: 14))
-                                                            .foregroundColor(Colors.c0_050)
-                                                        Text("Used by \(workoutItem.usedBy)")
-                                                            .font(.custom("VT323-Regular", size: 12))
-                                                            .foregroundColor(Colors.c0_500)
-                                                    }
-                                                    
-                                                    Spacer()
-                                                    
-                                                    Text(workoutItem.item.description)
+                                                    Text(workoutItem.usedBy)
                                                         .font(.custom("VT323-Regular", size: 12))
-                                                        .foregroundColor(Colors.c0_500)
-                                                        .multilineTextAlignment(.trailing)
+                                                        .foregroundColor(Colors.c0_050.opacity(0.8))
                                                 }
-                                                .padding()
-                                                .background(Colors.c1_400.opacity(0.3))
-                                                .cornerRadius(8)
                                             }
+                                            
+                                            Spacer()
                                         }
-                                        .padding(.horizontal)
                                     }
-                                }
-                                
-                                // Workout mode indicator
-                                if workout.mode == .manual {
-                                    HStack {
-                                        Image(systemName: "hand.raised.fill")
-                                            .foregroundColor(Colors.c0_500)
-                                        Text("MANUAL ENTRY")
-                                            .font(.custom("VT323-Regular", size: 14))
-                                            .foregroundColor(Colors.c0_500)
-                                        Spacer()
-                                    }
-                                    .padding(.horizontal)
                                 }
                             }
+                            .padding(20)
+                            .background(Color(red: 0.6, green: 0.39, blue: 0.39))
+                            .cornerRadius(12)
+                            .frame(maxWidth: .infinity)
                         }
                     }
                     
@@ -372,19 +360,8 @@ struct WorkoutDetailView: View {
                         
                         if !currentMessage.comments.isEmpty {
                             VStack(spacing: 0) {
-                                // Show last 3 comments (most recent)
-                                let lastComments = Array(currentMessage.comments.suffix(3))
-                                ForEach(lastComments) { comment in
-                                    CommentView(comment: comment)
-                                    
-                                    if comment.id != lastComments.last?.id {
-                                        Divider()
-                                            .background(Colors.c0_500.opacity(0.3))
-                                            .padding(.horizontal, 12)
-                                    }
-                                }
-                                
-                                if currentMessage.comments.count > 3 {
+                                // Show "View all comments" if there are more than 10
+                                if currentMessage.comments.count > 10 {
                                     Button(action: {
                                         showCommentsDetail = true
                                     }) {
@@ -395,6 +372,23 @@ struct WorkoutDetailView: View {
                                             .padding(.vertical, 8)
                                     }
                                     .buttonStyle(PlainButtonStyle())
+                                }
+                                
+                                // Show last 10 comments (most recent)
+                                let lastComments = Array(currentMessage.comments.suffix(10))
+                                ForEach(lastComments) { comment in
+                                    Button(action: {
+                                        showCommentsDetail = true
+                                    }) {
+                                        CommentView(comment: comment)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    
+                                    if comment.id != lastComments.last?.id {
+                                        Divider()
+                                            .background(Colors.c0_500.opacity(0.3))
+                                            .padding(.horizontal, 12)
+                                    }
                                 }
                             }
                             .padding(.horizontal)

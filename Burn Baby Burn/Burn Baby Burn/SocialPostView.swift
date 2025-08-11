@@ -190,63 +190,67 @@ struct SocialPostView: View {
                     }
                 }
                 
-                if let workout = message.workout {
-                    VStack(spacing: 8) {
-                        let card = HStack(alignment: .center, spacing: 20) {
-                            HStack(alignment: .center) {
-                                Image(systemName: workout.type.icon)
+                // Workout details
+                if let workout = currentMessage.workout {
+                    Button(action: {
+                        showWorkoutDetail = true
+                    }) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: getWorkoutIcon(for: workout.type))
                                     .font(.system(size: 24))
-                                Text(formatWorkoutValue(workout.finalScore))
-                                    .font(.custom("PressStart2P-Regular", size: getWorkoutValueFontSize(workout.finalScore)))
-                            }
-                            VStack(alignment: .trailing) {
-                                Text("\(formatWorkoutValue(workout.calories)) Cal")
-                                    .font(.custom("VT323-Regular", size: 16))
-                            }
-                        }
-                        .foregroundColor(Colors.c0_050)
-                        .padding()
-                        .background(Colors.c1_400)
-                        .fixedSize(horizontal: true, vertical: false)
-                        .overlay(
-                            Group {
+                                    .foregroundColor(Colors.c0_050)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("\(workout.value)")
+                                        .font(.custom("PressStart2P-Regular", size: 24))
+                                        .foregroundColor(Colors.c0_050)
+                                    
+                                    Text("\(workout.calories) Cal")
+                                        .font(.custom("VT323-Regular", size: 16))
+                                        .foregroundColor(Colors.c0_050)
+                                }
+                                
+                                Spacer()
+                                
+                                // Only show MANUAL badge
                                 if workout.mode == .manual {
                                     Text("MANUAL")
-                                        .font(.custom("VT323-Regular", size: 14))
-                                        .foregroundColor(Colors.c0_500)
-                                        .padding(.vertical, 1)
-                                        .padding(.horizontal, 4)
-                                        .background(Color(red: 0.3, green: 0.2, blue: 0.1))
-                                        .cornerRadius(0)
-                                }
-                            }, alignment: .bottomTrailing
-                        )
-                        
-                        // Show items if any
-                        if !workout.items.isEmpty {
-                            HStack(spacing: 8) {
-                                ForEach(workout.items) { workoutItem in
-                                    VStack(spacing: 2) {
-                                        Image(workoutItem.item.imageName)
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fit)
-                                            .frame(width: 24, height: 24)
-                                        Text(workoutItem.usedBy)
-                                            .font(.custom("VT323-Regular", size: 10))
-                                            .foregroundColor(Colors.c0_500)
-                                    }
+                                        .font(.custom("VT323-Regular", size: 12))
+                                        .foregroundColor(Colors.c0_050)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(red: 0.4, green: 0.26, blue: 0.26))
+                                        .cornerRadius(4)
                                 }
                             }
-                            .padding(.horizontal)
+                            
+                            // Display workout items if any
+                            if !workout.items.isEmpty {
+                                HStack(spacing: 12) {
+                                    ForEach(workout.items) { workoutItem in
+                                        VStack(spacing: 4) {
+                                            Image(workoutItem.item.imageName)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 32, height: 32)
+                                            
+                                            Text(workoutItem.usedBy)
+                                                .font(.custom("VT323-Regular", size: 10))
+                                                .foregroundColor(Colors.c0_050.opacity(0.8))
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                }
+                            }
                         }
-                        
-                        Button(action: {
-                            showWorkoutDetail = true
-                        }) {
-                            card
-                        }
-                        .buttonStyle(PlainButtonStyle())
+                        .padding(16)
+                        .background(Color(red: 0.6, green: 0.39, blue: 0.39))
+                        .cornerRadius(8)
+                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
             
@@ -272,18 +276,6 @@ struct SocialPostView: View {
             // Comment previews (show by default if there are comments)
             if !currentMessage.comments.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Show last 2 comments (most recent)
-                    let lastComments = Array(currentMessage.comments.suffix(2))
-                    ForEach(lastComments) { comment in
-                        CommentView(comment: comment)
-                        
-                        if comment.id != lastComments.last?.id {
-                            Divider()
-                                .background(Colors.c0_500.opacity(0.3))
-                                .padding(.horizontal, 12)
-                        }
-                    }
-                    
                     // Show "View all comments" if there are more than 2
                     if currentMessage.comments.count > 2 {
                         Button(action: {
@@ -296,6 +288,23 @@ struct SocialPostView: View {
                                 .padding(.vertical, 8)
                         }
                         .buttonStyle(PlainButtonStyle())
+                    }
+                    
+                    // Show last 2 comments (most recent)
+                    let lastComments = Array(currentMessage.comments.suffix(2))
+                    ForEach(lastComments) { comment in
+                        Button(action: {
+                            showCommentsDetail = true
+                        }) {
+                            CommentView(comment: comment)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        if comment.id != lastComments.last?.id {
+                            Divider()
+                                .background(Colors.c0_500.opacity(0.3))
+                                .padding(.horizontal, 12)
+                        }
                     }
                 }
                 .padding(.top, 8)
@@ -359,6 +368,21 @@ struct SocialPostView: View {
             return String(format: "%.1f", kValue).replacingOccurrences(of: ".0", with: "") + "k"
         }
         return "\(value)"
+    }
+    
+    private func getWorkoutIcon(for workoutType: WorkoutType) -> String {
+        switch workoutType {
+        case .strengthTraining:
+            return "figure.strengthtraining.traditional"
+        case .running:
+            return "figure.run"
+        case .walking:
+            return "figure.walk"
+        case .coreTraining:
+            return "figure.core.training"
+        case .yoga:
+            return "figure.yoga"
+        }
     }
 }
 
