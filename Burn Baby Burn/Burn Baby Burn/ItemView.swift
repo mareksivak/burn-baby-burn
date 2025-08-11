@@ -463,7 +463,7 @@ class ItemManager {
             Item(
                 name: "Roid Rage",
                 description: "Multiplies next workout by 50%.",
-                imageName: "item-roid-rage",
+                imageName: "item-roidrage",
                 rarity: .epic,
                 effect: .multiplyNextWorkout(multiplier: 1.5)
             ),

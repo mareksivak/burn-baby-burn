@@ -30,6 +30,7 @@ struct MessageConfig {
     let timeOffset: TimeInterval // offset in seconds from the base time
     let reactions: [ReactionConfig]
     let comments: [CommentConfig]
+    let attachedImages: [String] // Array of image asset names (0-5 images)
 }
 
 // MARK: - Workout Item Configuration
@@ -104,21 +105,6 @@ struct AppConfig {
         // Use author name to generate consistent location
         let hash = abs(authorName.hashValue)
         return locations[hash % locations.count]
-    }
-    
-    // Helper function to get static attached images
-    private static func getStaticAttachedImages(for messageAuthor: String) -> [String] {
-        // Define static image configurations for each author
-        // Each author can have 0-5 images using placeholder names photo1, photo2, photo3, photo4, photo5
-        let staticImageConfigs: [String: [String]] = [
-            "Ziga Porenta": ["photo1", "photo2"], // 2 images
-            "Will Corbett": ["photo1", "photo3", "photo5"], // 3 images
-            "Marek": ["photo2", "photo4"], // 2 images
-            "Nic": [], // No images
-            "Christopher Schrader": ["photo1", "photo2", "photo3", "photo4", "photo5"] // 5 images (max)
-        ]
-        
-        return staticImageConfigs[messageAuthor] ?? []
     }
     
     // Helper function to convert config to Message model
@@ -201,7 +187,7 @@ struct AppConfig {
                 timestamp: timestamp,
                 score: (authorRank, authorScore),
                 location: getLocationForAuthor(config.authorName),
-                attachedImages: getStaticAttachedImages(for: config.authorName),
+                attachedImages: config.attachedImages,
                 comments: comments,
                 reactions: reactions
             )
@@ -223,7 +209,8 @@ struct AppConfig {
             comments: [
                 CommentConfig(author: "Will Corbett", content: "damn", timeOffset: 34 * 60),
                 CommentConfig(author: "Christopher Schrader", content: "Nice work! 💪", timeOffset: 3 * 3600 + 12 * 60)
-            ]
+            ],
+            attachedImages: ["photo1", "photo2"]
         ),
         
         // Will's reaction
@@ -232,7 +219,8 @@ struct AppConfig {
             type: .jumboEmoji("😮"),
             timeOffset: 34 * 60, // 34 minutes later
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         // Chris's reaction
@@ -241,7 +229,8 @@ struct AppConfig {
             type: .text("damn"),
             timeOffset: 3 * 3600 + 12 * 60, // 3h 12m later
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         // Will's comment
@@ -250,7 +239,8 @@ struct AppConfig {
             type: .text("Somebody better get kamikaze"),
             timeOffset: 3 * 3600 + 47 * 60, // 3h 47m later
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         // Will's workout with items
@@ -265,7 +255,8 @@ struct AppConfig {
             comments: [
                 CommentConfig(author: "Nic", content: "Let's crush it! 💪", timeOffset: 4 * 3600 + 15 * 60),
                 CommentConfig(author: "Marek", content: "Keep it up! 🔥", timeOffset: 4 * 3600 + 20 * 60)
-            ]
+            ],
+            attachedImages: ["photo1", "photo3", "photo5"]
         ),
         
         // Nic's reaction
@@ -274,7 +265,8 @@ struct AppConfig {
             type: .text("Let's crush it! 💪"),
             timeOffset: 4 * 3600 + 15 * 60, // 4h 15m later
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         // Marek's workout with items
@@ -288,7 +280,8 @@ struct AppConfig {
             ],
             comments: [
                 CommentConfig(author: "Christopher Schrader", content: "Amazing progress! 👏", timeOffset: 4 * 3600 + 35 * 60)
-            ]
+            ],
+            attachedImages: []
         ),
         
         // Will's 1100 calorie run with items
@@ -306,7 +299,8 @@ struct AppConfig {
             comments: [
                 CommentConfig(author: "Nic", content: "Beast mode! 💪", timeOffset: 5 * 60),
                 CommentConfig(author: "Ziga Porenta", content: "You're crushing it! 🚀", timeOffset: 10 * 60)
-            ]
+            ],
+            attachedImages: []
         ),
         
         // Marek's walking workout with items
@@ -323,7 +317,8 @@ struct AppConfig {
             ],
             comments: [
                 CommentConfig(author: "Christopher Schrader", content: "Keep it up! 🔥", timeOffset: 3 * 60)
-            ]
+            ],
+            attachedImages: []
         ),
         
         // Christopher's core training with items
@@ -339,7 +334,8 @@ struct AppConfig {
             ],
             comments: [
                 CommentConfig(author: "Ziga Porenta", content: "You're crushing it! 🚀", timeOffset: 5 * 3600 + 30 * 60)
-            ]
+            ],
+            attachedImages: ["photo1", "photo2", "photo3", "photo4", "photo5"]
         ),
         
         // Additional static messages to reach 100
@@ -348,7 +344,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 150, calories: 150, mode: .auto, items: []),
             timeOffset: 5 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -356,7 +353,8 @@ struct AppConfig {
             type: .text("Nice work! 💪"),
             timeOffset: 5 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -364,7 +362,8 @@ struct AppConfig {
             type: .workout(.yoga, value: 120, calories: 120, mode: .manual, items: []),
             timeOffset: 5 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -372,7 +371,8 @@ struct AppConfig {
             type: .text("Let's do a group workout! 🏋️‍♂️"),
             timeOffset: 5 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -380,7 +380,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 250, calories: 250, mode: .auto, items: []),
             timeOffset: 6 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -388,7 +389,8 @@ struct AppConfig {
             type: .text("Beast mode! 🔥"),
             timeOffset: 6 * 3600 + 10 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -396,7 +398,8 @@ struct AppConfig {
             type: .workout(.running, value: 450, calories: 450, mode: .manual, items: []),
             timeOffset: 6 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -404,7 +407,8 @@ struct AppConfig {
             type: .text("New personal best! 🏆"),
             timeOffset: 6 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -412,7 +416,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 180, calories: 180, mode: .auto, items: []),
             timeOffset: 6 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -420,7 +425,8 @@ struct AppConfig {
             type: .text("Keep the momentum! 💫"),
             timeOffset: 7 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -428,7 +434,8 @@ struct AppConfig {
             type: .workout(.yoga, value: 150, calories: 150, mode: .manual, items: []),
             timeOffset: 7 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -436,7 +443,8 @@ struct AppConfig {
             type: .text("Perfect form! 🧘‍♂️"),
             timeOffset: 7 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -444,7 +452,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 280, calories: 280, mode: .auto, items: []),
             timeOffset: 7 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -452,7 +461,8 @@ struct AppConfig {
             type: .text("Absolute beast mode! 🦁"),
             timeOffset: 7 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -460,7 +470,8 @@ struct AppConfig {
             type: .workout(.walking, value: 200, calories: 200, mode: .manual, items: []),
             timeOffset: 7 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -468,7 +479,8 @@ struct AppConfig {
             type: .text("Power walking! 🚶‍♂️"),
             timeOffset: 8 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -476,7 +488,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 160, calories: 160, mode: .auto, items: []),
             timeOffset: 8 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -484,7 +497,8 @@ struct AppConfig {
             type: .text("Crushing it! 💪"),
             timeOffset: 8 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -492,7 +506,8 @@ struct AppConfig {
             type: .workout(.running, value: 500, calories: 500, mode: .manual, items: []),
             timeOffset: 8 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -500,7 +515,8 @@ struct AppConfig {
             type: .text("Marathon training? 🏃‍♂️"),
             timeOffset: 8 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -508,7 +524,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 300, calories: 300, mode: .auto, items: []),
             timeOffset: 8 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -516,7 +533,8 @@ struct AppConfig {
             type: .text("Heavy lifting! 💪"),
             timeOffset: 9 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -524,7 +542,8 @@ struct AppConfig {
             type: .workout(.yoga, value: 180, calories: 180, mode: .manual, items: []),
             timeOffset: 9 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -532,7 +551,8 @@ struct AppConfig {
             type: .text("Extended session! 🧘‍♂️"),
             timeOffset: 9 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -540,7 +560,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 220, calories: 220, mode: .auto, items: []),
             timeOffset: 9 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -548,7 +569,8 @@ struct AppConfig {
             type: .text("Intense core! 🔥"),
             timeOffset: 9 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -556,7 +578,8 @@ struct AppConfig {
             type: .workout(.walking, value: 250, calories: 250, mode: .manual, items: []),
             timeOffset: 9 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -564,7 +587,8 @@ struct AppConfig {
             type: .text("Power walking! 🚶‍♂️"),
             timeOffset: 10 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -572,7 +596,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 350, calories: 350, mode: .auto, items: []),
             timeOffset: 10 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -580,7 +605,8 @@ struct AppConfig {
             type: .text("Beast mode activated! 🦁"),
             timeOffset: 10 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -588,7 +614,8 @@ struct AppConfig {
             type: .workout(.running, value: 600, calories: 600, mode: .manual, items: []),
             timeOffset: 10 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -596,7 +623,8 @@ struct AppConfig {
             type: .text("Long distance! 🏃‍♂️"),
             timeOffset: 10 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -604,7 +632,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 250, calories: 250, mode: .auto, items: []),
             timeOffset: 10 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -612,7 +641,8 @@ struct AppConfig {
             type: .text("Core strength! 💪"),
             timeOffset: 11 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -620,7 +650,8 @@ struct AppConfig {
             type: .workout(.yoga, value: 200, calories: 200, mode: .manual, items: []),
             timeOffset: 11 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -628,7 +659,8 @@ struct AppConfig {
             type: .text("Extended yoga! 🧘‍♂️"),
             timeOffset: 11 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -636,7 +668,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 400, calories: 400, mode: .auto, items: []),
             timeOffset: 11 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -644,7 +677,8 @@ struct AppConfig {
             type: .text("Maximum effort! 💯"),
             timeOffset: 11 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -652,7 +686,8 @@ struct AppConfig {
             type: .workout(.walking, value: 300, calories: 300, mode: .manual, items: []),
             timeOffset: 11 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -660,7 +695,8 @@ struct AppConfig {
             type: .text("Power walking! 🚶‍♂️"),
             timeOffset: 12 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -676,7 +712,8 @@ struct AppConfig {
                 CommentConfig(author: "Will Corbett", content: "Core strength! 💪", timeOffset: 3 * 60),
                 CommentConfig(author: "Christopher Schrader", content: "Looking strong! 🔥", timeOffset: 8 * 60),
                 CommentConfig(author: "Nic", content: "Keep it up! 👏", timeOffset: 12 * 60)
-            ]
+            ],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -684,7 +721,8 @@ struct AppConfig {
             type: .text("Core power! 💪"),
             timeOffset: 12 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -692,7 +730,8 @@ struct AppConfig {
             type: .workout(.running, value: 750, calories: 750, mode: .manual, items: []),
             timeOffset: 12 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -700,7 +739,8 @@ struct AppConfig {
             type: .text("Marathon training! 🏃‍♂️"),
             timeOffset: 12 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -708,7 +748,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 450, calories: 450, mode: .auto, items: []),
             timeOffset: 12 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -716,7 +757,8 @@ struct AppConfig {
             type: .text("Maximum strength! 💪"),
             timeOffset: 13 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -724,7 +766,8 @@ struct AppConfig {
             type: .workout(.yoga, value: 250, calories: 250, mode: .manual, items: []),
             timeOffset: 13 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -732,7 +775,8 @@ struct AppConfig {
             type: .text("Extended session! 🧘‍♂️"),
             timeOffset: 13 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -740,7 +784,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 550, calories: 550, mode: .auto, items: []),
             timeOffset: 13 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -748,7 +793,8 @@ struct AppConfig {
             type: .text("Maximum power! 💪"),
             timeOffset: 13 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -756,7 +802,8 @@ struct AppConfig {
             type: .workout(.walking, value: 400, calories: 400, mode: .manual, items: []),
             timeOffset: 13 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -764,7 +811,8 @@ struct AppConfig {
             type: .text("Power walking! 🚶‍♂️"),
             timeOffset: 14 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -772,7 +820,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 400, calories: 400, mode: .auto, items: []),
             timeOffset: 14 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -780,7 +829,8 @@ struct AppConfig {
             type: .text("Core strength! 💪"),
             timeOffset: 14 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -788,7 +838,8 @@ struct AppConfig {
             type: .workout(.running, value: 1000, calories: 1000, mode: .manual, items: []),
             timeOffset: 14 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -796,7 +847,8 @@ struct AppConfig {
             type: .text("Ultra marathon! 🏃‍♂️"),
             timeOffset: 14 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -804,7 +856,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 600, calories: 600, mode: .auto, items: []),
             timeOffset: 14 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -812,7 +865,8 @@ struct AppConfig {
             type: .text("Ultimate strength! 💪"),
             timeOffset: 15 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -820,7 +874,8 @@ struct AppConfig {
             type: .workout(.yoga, value: 350, calories: 350, mode: .manual, items: []),
             timeOffset: 15 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -828,7 +883,8 @@ struct AppConfig {
             type: .text("Extended yoga! 🧘‍♂️"),
             timeOffset: 15 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -836,7 +892,8 @@ struct AppConfig {
             type: .workout(.coreTraining, value: 450, calories: 450, mode: .auto, items: []),
             timeOffset: 15 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -844,7 +901,8 @@ struct AppConfig {
             type: .text("Core power! 💪"),
             timeOffset: 15 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -852,7 +910,8 @@ struct AppConfig {
             type: .workout(.walking, value: 450, calories: 450, mode: .manual, items: []),
             timeOffset: 15 * 3600 + 45 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -860,7 +919,8 @@ struct AppConfig {
             type: .text("Power walking! 🚶‍♂️"),
             timeOffset: 16 * 3600,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -868,7 +928,8 @@ struct AppConfig {
             type: .workout(.strengthTraining, value: 650, calories: 650, mode: .auto, items: []),
             timeOffset: 16 * 3600 + 15 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -876,7 +937,8 @@ struct AppConfig {
             type: .text("Maximum strength! 💪"),
             timeOffset: 16 * 3600 + 20 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -884,7 +946,8 @@ struct AppConfig {
             type: .workout(.running, value: 1100, calories: 1100, mode: .manual, items: []),
             timeOffset: 16 * 3600 + 30 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         ),
         
         MessageConfig(
@@ -892,7 +955,8 @@ struct AppConfig {
             type: .text("Ultra distance! 🏃‍♂️"),
             timeOffset: 16 * 3600 + 35 * 60,
             reactions: [],
-            comments: []
+            comments: [],
+            attachedImages: []
         )
     ]
 } 
