@@ -244,6 +244,8 @@ struct SocialPostView: View {
                                     Spacer()
                                 }
                             }
+                            
+
                         }
                         .padding(16)
                         .background(Color(red: 0.6, green: 0.39, blue: 0.39))
@@ -378,12 +380,18 @@ struct SocialPostView: View {
             return "figure.run"
         case .walking:
             return "figure.walk"
+        case .swimming:
+            return "figure.pool.swim"
+        case .hiking:
+            return "figure.hiking"
         case .coreTraining:
             return "figure.core.training"
         case .yoga:
             return "figure.yoga"
         }
     }
+    
+
 }
 
 #Preview {
@@ -396,7 +404,11 @@ struct SocialPostView: View {
                 type: .strengthTraining,
                 value: 160,
                 calories: 160,
-                mode: .auto
+                mode: .auto,
+                distance: nil,
+                duration: 0,
+                avgHeartRate: nil,
+                maxHeartRate: nil
             ),
             timestamp: Date(),
             score: (rank: "1", score: 2458),

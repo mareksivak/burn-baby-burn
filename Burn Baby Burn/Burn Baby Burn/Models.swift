@@ -64,6 +64,12 @@ struct Workout: Identifiable {
     let mode: WorkoutMode
     var items: [WorkoutItem] = []
     
+    // New workout data fields
+    let distance: Double? // in kilometers, nil for non-distance workouts
+    let duration: TimeInterval // in seconds
+    let avgHeartRate: Int? // in BPM, nil if not tracked
+    let maxHeartRate: Int? // in BPM, nil if not tracked
+    
     var finalScore: Int {
         var multiplier: Double = 1.0
         for item in items {
@@ -89,6 +95,8 @@ enum WorkoutType: String {
     case strengthTraining = "STRENGTH\nTRAINING"
     case running = "RUNNING"
     case walking = "WALKING"
+    case swimming = "SWIMMING"
+    case hiking = "HIKING"
     case coreTraining = "CORE\nTRAINING"
     case yoga = "YOGA"
     
@@ -97,8 +105,19 @@ enum WorkoutType: String {
         case .strengthTraining: return "figure.strengthtraining.traditional"
         case .running: return "figure.run"
         case .walking: return "figure.walk"
+        case .swimming: return "figure.pool.swim"
+        case .hiking: return "figure.hiking"
         case .coreTraining: return "figure.core.training"
         case .yoga: return "figure.yoga"
+        }
+    }
+    
+    var hasDistance: Bool {
+        switch self {
+        case .running, .walking, .swimming, .hiking:
+            return true
+        case .strengthTraining, .coreTraining, .yoga:
+            return false
         }
     }
 }

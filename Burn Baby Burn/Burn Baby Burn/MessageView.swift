@@ -162,7 +162,11 @@ struct MessageView: View {
             type: .strengthTraining,
             value: 160,
             calories: 160,
-            mode: .auto
+            mode: .auto,
+            distance: nil,
+            duration: 0,
+            avgHeartRate: nil,
+            maxHeartRate: nil
         ),
         timestamp: Date(),
         score: (rank: "1", score: 2458),

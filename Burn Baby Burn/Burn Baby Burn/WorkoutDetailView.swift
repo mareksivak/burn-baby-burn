@@ -76,6 +76,10 @@ struct WorkoutDetailView: View {
             return "figure.run"
         case .walking:
             return "figure.walk"
+        case .swimming:
+            return "figure.pool.swim"
+        case .hiking:
+            return "figure.hiking"
         case .coreTraining:
             return "figure.core.training"
         case .yoga:
@@ -106,6 +110,27 @@ struct WorkoutDetailView: View {
             return String(format: "%.1f", kValue).replacingOccurrences(of: ".0", with: "") + "k"
         }
         return "\(value)"
+    }
+    
+    private func formatDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = Int(seconds) % 3600 / 60
+        let secs = Int(seconds) % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, secs)
+        } else {
+            return String(format: "%02d:%02d", minutes, secs)
+        }
+    }
+    
+    private func calculateItemEffect(_ item: Item, baseCalories: Int) -> Int {
+        switch item.effect {
+        case .multiplyNextWorkout(let multiplier):
+            let newCalories = Int(Double(baseCalories) * multiplier)
+            return newCalories - baseCalories
+        case .deductPoints(let points):
+            return -points
+        }
     }
     
     var body: some View {
@@ -180,71 +205,196 @@ struct WorkoutDetailView: View {
                         }
                     }
                     
-                    // Workout card (enhanced)
+                    // Workout Icon and Score Section
                     if let workout = message.workout {
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("WORKOUT DETAILS")
+                            HStack {
+                                Image(systemName: getWorkoutIcon(for: workout.type))
+                                    .font(.system(size: 48))
+                                    .foregroundColor(Colors.c0_050)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("\(workout.finalScore)")
+                                        .font(.custom("PressStart2P-Regular", size: 48))
+                                        .foregroundColor(Colors.c0_050)
+                                    
+                                    Text("Final Score")
+                                        .font(.custom("VT323-Regular", size: 20))
+                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                }
+                                
+                                Spacer()
+                                
+                                // Only show MANUAL badge
+                                if workout.mode == .manual {
+                                    Text("MANUAL")
+                                        .font(.custom("VT323-Regular", size: 14))
+                                        .foregroundColor(Colors.c0_050)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(Color(red: 0.4, green: 0.26, blue: 0.26))
+                                        .cornerRadius(6)
+                                }
+                            }
+                            .padding(20)
+                            .background(Color(red: 0.6, green: 0.39, blue: 0.39))
+                            .cornerRadius(12)
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    
+                    // Score Breakdown Section
+                    if let workout = message.workout {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("SCORE BREAKDOWN")
                                 .font(.custom("VT323-Regular", size: 18))
                                 .foregroundColor(Colors.c0_500)
                                 .padding(.horizontal)
                             
-                            // Workout details
                             VStack(alignment: .leading, spacing: 12) {
+                                // Base Score Row
                                 HStack {
-                                    Image(systemName: getWorkoutIcon(for: workout.type))
-                                        .font(.system(size: 32))
-                                        .foregroundColor(Colors.c0_050)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("\(workout.value)")
-                                            .font(.custom("PressStart2P-Regular", size: 32))
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "flame")
+                                            .font(.system(size: 16))
                                             .foregroundColor(Colors.c0_050)
-                                        
-                                        Text("\(workout.calories) Cal")
-                                            .font(.custom("VT323-Regular", size: 20))
+                                        Text("Base Score")
+                                            .font(.custom("VT323-Regular", size: 14))
                                             .foregroundColor(Colors.c0_050)
                                     }
                                     
                                     Spacer()
                                     
-                                    // Only show MANUAL badge
-                                    if workout.mode == .manual {
-                                        Text("MANUAL")
-                                            .font(.custom("VT323-Regular", size: 14))
-                                            .foregroundColor(Colors.c0_050)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .background(Color(red: 0.4, green: 0.26, blue: 0.26))
-                                            .cornerRadius(6)
-                                    }
+                                    Text("\(workout.calories)")
+                                        .font(.custom("VT323-Regular", size: 16))
+                                        .foregroundColor(Colors.c0_050)
                                 }
                                 
-                                // Display workout items if any
+                                // Items Effects Rows
                                 if !workout.items.isEmpty {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Items Used")
-                                            .font(.custom("VT323-Regular", size: 14))
-                                            .foregroundColor(Colors.c0_050)
-                                            .padding(.bottom, 4)
-                                        
-                                        HStack(spacing: 16) {
-                                            ForEach(workout.items) { workoutItem in
-                                                VStack(spacing: 6) {
-                                                    Image(workoutItem.item.imageName)
-                                                        .resizable()
-                                                        .aspectRatio(contentMode: .fit)
-                                                        .frame(width: 40, height: 40)
-                                                    
-                                                    Text(workoutItem.usedBy)
-                                                        .font(.custom("VT323-Regular", size: 12))
-                                                        .foregroundColor(Colors.c0_050.opacity(0.8))
-                                                }
+                                    ForEach(workout.items) { workoutItem in
+                                        HStack {
+                                            HStack(spacing: 8) {
+                                                Image(workoutItem.item.imageName)
+                                                    .resizable()
+                                                    .aspectRatio(contentMode: .fit)
+                                                    .frame(width: 20, height: 20)
+                                                Text("\(workoutItem.item.name) used by \(workoutItem.usedBy)")
+                                                    .font(.custom("VT323-Regular", size: 14))
+                                                    .foregroundColor(Colors.c0_050)
                                             }
                                             
                                             Spacer()
+                                            
+                                            // Calculate and display item effect
+                                            let effectValue = calculateItemEffect(workoutItem.item, baseCalories: workout.calories)
+                                            Text(effectValue >= 0 ? "+\(effectValue)" : "\(effectValue)")
+                                                .font(.custom("VT323-Regular", size: 16))
+                                                .foregroundColor(effectValue >= 0 ? .green : .red)
                                         }
                                     }
                                 }
+                                
+                                // Final Score Row
+                                HStack {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "target")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Colors.c0_050)
+                                        Text("Final Score")
+                                            .font(.custom("VT323-Regular", size: 14))
+                                            .foregroundColor(Colors.c0_050)
+                                            .fontWeight(.bold)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Text("\(workout.finalScore)")
+                                        .font(.custom("VT323-Regular", size: 18))
+                                        .foregroundColor(Colors.c0_050)
+                                        .fontWeight(.bold)
+                                }
+                            }
+                            .padding(20)
+                            .background(Color(red: 0.6, green: 0.39, blue: 0.39))
+                            .cornerRadius(12)
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                    
+                    // Workout Data Section (2-Column Grid)
+                    if let workout = message.workout {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("WORKOUT DATA")
+                                .font(.custom("VT323-Regular", size: 18))
+                                .foregroundColor(Colors.c0_500)
+                                .padding(.horizontal)
+                            
+                            LazyVGrid(columns: [
+                                GridItem(.flexible(), alignment: .leading),
+                                GridItem(.flexible(), alignment: .trailing)
+                            ], spacing: 12) {
+                                // Distance for distance-based workouts
+                                if let distance = workout.distance {
+                                    HStack {
+                                        Image(systemName: "location")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                        Text("Distance")
+                                            .font(.custom("VT323-Regular", size: 14))
+                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                    }
+                                    
+                                    Text("\(String(format: "%.1f km", distance))")
+                                        .font(.custom("VT323-Regular", size: 14))
+                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                }
+                                
+                                // Duration
+                                if workout.duration > 0 {
+                                    HStack {
+                                        Image(systemName: "clock")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                        Text("Duration")
+                                            .font(.custom("VT323-Regular", size: 14))
+                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                    }
+                                    
+                                    Text(formatDuration(workout.duration))
+                                        .font(.custom("VT323-Regular", size: 14))
+                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                }
+                                
+                                // Heart rate data
+                                if let avgHR = workout.avgHeartRate, let maxHR = workout.maxHeartRate {
+                                    HStack {
+                                        Image(systemName: "heart.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                        Text("Heart Rate")
+                                            .font(.custom("VT323-Regular", size: 14))
+                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                    }
+                                    
+                                    Text("\(avgHR)-\(maxHR) BPM")
+                                        .font(.custom("VT323-Regular", size: 14))
+                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                }
+                                
+                                // Calories
+                                HStack {
+                                    Image(systemName: "flame")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                    Text("Calories")
+                                        .font(.custom("VT323-Regular", size: 14))
+                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                }
+                                
+                                Text("\(workout.calories) cal")
+                                    .font(.custom("VT323-Regular", size: 14))
+                                    .foregroundColor(Colors.c0_050.opacity(0.8))
                             }
                             .padding(20)
                             .background(Color(red: 0.6, green: 0.39, blue: 0.39))
@@ -455,7 +605,11 @@ struct WorkoutDetailView: View {
                 type: .strengthTraining,
                 value: 160,
                 calories: 160,
-                mode: .auto
+                mode: .auto,
+                distance: nil,
+                duration: 0,
+                avgHeartRate: nil,
+                maxHeartRate: nil
             ),
             timestamp: Date(),
             score: (rank: "1", score: 2458),
