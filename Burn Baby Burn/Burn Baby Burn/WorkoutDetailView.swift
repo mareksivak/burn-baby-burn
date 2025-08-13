@@ -133,6 +133,13 @@ struct WorkoutDetailView: View {
         }
     }
     
+    private func calculatePace(distance: Double, duration: TimeInterval) -> String {
+        let paceSeconds = duration / distance
+        let paceMinutes = Int(paceSeconds) / 60
+        let paceSecs = Int(paceSeconds) % 60
+        return "\(paceMinutes):\(String(format: "%02d", paceSecs)) /km"
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -322,7 +329,7 @@ struct WorkoutDetailView: View {
                         }
                     }
                     
-                    // Workout Data Section (2-Column Grid)
+                    // Workout Data Section (Label above, Value below, 2 per row)
                     if let workout = message.workout {
                         VStack(alignment: .leading, spacing: 16) {
                             Text("WORKOUT DATA")
@@ -330,71 +337,121 @@ struct WorkoutDetailView: View {
                                 .foregroundColor(Colors.c0_500)
                                 .padding(.horizontal)
                             
-                            LazyVGrid(columns: [
-                                GridItem(.flexible(), alignment: .leading),
-                                GridItem(.flexible(), alignment: .trailing)
-                            ], spacing: 12) {
-                                // Distance for distance-based workouts
-                                if let distance = workout.distance {
-                                    HStack {
-                                        Image(systemName: "location")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(Colors.c0_050.opacity(0.8))
-                                        Text("Distance")
-                                            .font(.custom("VT323-Regular", size: 14))
-                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                            VStack(spacing: 16) {
+                                // Row 1: Distance and Duration
+                                HStack(spacing: 20) {
+                                    // Distance
+                                    if let distance = workout.distance {
+                                        VStack(spacing: 8) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "location")
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                Text("DISTANCE")
+                                                    .font(.custom("VT323-Regular", size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                            }
+                                            Text("\(String(format: "%.1f km", distance))")
+                                                .font(.custom("VT323-Regular", size: 20))
+                                                .foregroundColor(Colors.c0_050)
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .center)
                                     }
                                     
-                                    Text("\(String(format: "%.1f km", distance))")
-                                        .font(.custom("VT323-Regular", size: 14))
-                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                    // Duration
+                                    if workout.duration > 0 {
+                                        VStack(spacing: 8) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "clock")
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                Text("DURATION")
+                                                    .font(.custom("VT323-Regular", size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                            }
+                                            Text(formatDuration(workout.duration))
+                                                .font(.custom("VT323-Regular", size: 20))
+                                                .foregroundColor(Colors.c0_050)
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                    }
                                 }
                                 
-                                // Duration
-                                if workout.duration > 0 {
-                                    HStack {
-                                        Image(systemName: "clock")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(Colors.c0_050.opacity(0.8))
-                                        Text("Duration")
-                                            .font(.custom("VT323-Regular", size: 14))
-                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                // Row 2: Heart Rate and Calories
+                                HStack(spacing: 20) {
+                                    // Heart Rate
+                                    if let avgHR = workout.avgHeartRate, let maxHR = workout.maxHeartRate {
+                                        VStack(spacing: 8) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "heart.fill")
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                Text("AVG HEART RATE")
+                                                    .font(.custom("VT323-Regular", size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                            }
+                                            Text("\(avgHR) bpm")
+                                                .font(.custom("VT323-Regular", size: 20))
+                                                .foregroundColor(Colors.c0_050)
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .center)
                                     }
                                     
-                                    Text(formatDuration(workout.duration))
-                                        .font(.custom("VT323-Regular", size: 14))
-                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                    // Calories
+                                                                            VStack(spacing: 8) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "flame")
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                Text("CALORIES")
+                                                    .font(.custom("VT323-Regular", size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                            }
+                                            Text("\(workout.calories) cal")
+                                                .font(.custom("VT323-Regular", size: 20))
+                                                .foregroundColor(Colors.c0_050)
+                                        }
+                                    .frame(maxWidth: .infinity, alignment: .center)
                                 }
                                 
-                                // Heart rate data
-                                if let avgHR = workout.avgHeartRate, let maxHR = workout.maxHeartRate {
-                                    HStack {
-                                        Image(systemName: "heart.fill")
-                                            .font(.system(size: 16))
-                                            .foregroundColor(Colors.c0_050.opacity(0.8))
-                                        Text("Heart Rate")
-                                            .font(.custom("VT323-Regular", size: 14))
-                                            .foregroundColor(Colors.c0_050.opacity(0.8))
+                                // Row 3: Max Heart Rate and Pace (if distance and duration available)
+                                if let distance = workout.distance, workout.duration > 0 {
+                                    HStack(spacing: 20) {
+                                        // Max Heart Rate
+                                        if let maxHR = workout.maxHeartRate {
+                                            VStack(spacing: 8) {
+                                                HStack(spacing: 6) {
+                                                    Image(systemName: "heart.fill")
+                                                        .font(.system(size: 18))
+                                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                    Text("MAX HEART RATE")
+                                                        .font(.custom("VT323-Regular", size: 18))
+                                                        .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                }
+                                                Text("\(maxHR) bpm")
+                                                    .font(.custom("VT323-Regular", size: 20))
+                                                    .foregroundColor(Colors.c0_050)
+                                            }
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                        }
+                                        
+                                        // Pace
+                                        VStack(spacing: 8) {
+                                            HStack(spacing: 6) {
+                                                Image(systemName: "speedometer")
+                                                    .font(.system(size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                                Text("PACE")
+                                                    .font(.custom("VT323-Regular", size: 18))
+                                                    .foregroundColor(Colors.c0_050.opacity(0.8))
+                                            }
+                                            Text(calculatePace(distance: distance, duration: workout.duration))
+                                                .font(.custom("VT323-Regular", size: 20))
+                                                .foregroundColor(Colors.c0_050)
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .center)
                                     }
-                                    
-                                    Text("\(avgHR)-\(maxHR) BPM")
-                                        .font(.custom("VT323-Regular", size: 14))
-                                        .foregroundColor(Colors.c0_050.opacity(0.8))
                                 }
-                                
-                                // Calories
-                                HStack {
-                                    Image(systemName: "flame")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(Colors.c0_050.opacity(0.8))
-                                    Text("Calories")
-                                        .font(.custom("VT323-Regular", size: 14))
-                                        .foregroundColor(Colors.c0_050.opacity(0.8))
-                                }
-                                
-                                Text("\(workout.calories) cal")
-                                    .font(.custom("VT323-Regular", size: 14))
-                                    .foregroundColor(Colors.c0_050.opacity(0.8))
                             }
                             .padding(20)
                             .background(Color(red: 0.6, green: 0.39, blue: 0.39))
