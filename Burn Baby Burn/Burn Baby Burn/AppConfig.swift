@@ -969,16 +969,21 @@ struct AppConfig {
         // New Hiking workout by Nic
         MessageConfig(
             authorName: "Nic",
-            type: .workout(.hiking, mode: .manual, value: 650, calories: 650, distance: 8.2, duration: 3 * 3600 + 30 * 60, avgHeartRate: 125, maxHeartRate: 155, items: []),
+            type: .workout(.running, mode: .auto, value: 650, calories: 650, distance: 8.2, duration: 3 * 3600 + 30 * 60, avgHeartRate: 125, maxHeartRate: 155, items: [
+                WorkoutItemConfig(itemName: "Quicksand", usedBy: "Marek", usedOn: "Nic")
+            ]),
             timeOffset: 17 * 3600 + 30 * 60,
             reactions: [
+                ReactionConfig(author: "Christopher Schrader", type: .crown, timeOffset: 2 * 60),
+                ReactionConfig(author: "Christopher Schrader", type: .crown, timeOffset: 2 * 60),
+                ReactionConfig(author: "Christopher Schrader", type: .crown, timeOffset: 2 * 60),
                 ReactionConfig(author: "Christopher Schrader", type: .crown, timeOffset: 2 * 60),
                 ReactionConfig(author: "Will Corbett", type: .clap, timeOffset: 4 * 60)
             ],
             comments: [
                 CommentConfig(author: "Marek", content: "Mountain conqueror! ⛰️", timeOffset: 5 * 60)
             ],
-            attachedImages: []
+            attachedImages: ["photo1", "photo2"]
         )
     ]
 } 
