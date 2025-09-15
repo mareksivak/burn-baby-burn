@@ -7,6 +7,7 @@ struct RacetrackView: View {
     @State private var selectedPlayer: Player? = nil
     @State private var showChat: Bool = false
     @State private var remainingTime: TimeInterval
+    @State private var roadOffset: CGFloat = 0
     
     // Player data with actual scores from workouts
     private var players: [Player] {
@@ -56,18 +57,49 @@ struct RacetrackView: View {
     }
     
     // Viewport shows 1500 points of track
-    private let viewportHeight: CGFloat = 1500 * 0.1 // Scale factor for 1500 points
+    private let viewportHeight: CGFloat = 1500 * 0.3 // Increased scale factor for 1500 points
     
     // Calculate total track height
     private var totalTrackHeight: CGFloat {
-        CGFloat(maxScore) * 0.1
+        CGFloat(maxScore) * 0.3 // Increased scale factor to spread players further apart
+    }
+    
+    // Start the continuous road animation
+    private func startRoadAnimation() {
+        let roadHeight = UIScreen.main.bounds.width * 0.5
+        
+        // Reset to starting position
+        roadOffset = 0
+        
+        // Animate from top to bottom (positive Y direction)
+        withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
+            roadOffset = roadHeight
+        }
     }
     
     var body: some View {
         ZStack {
-            // Background
-            Color(red: 0.13, green: 0.08, blue: 0.08) // Dark brown background
-                .ignoresSafeArea()
+            // Animated road background with seamless repetition
+            GeometryReader { geometry in
+                let roadHeight = geometry.size.width * 0.5
+                let screenHeight = geometry.size.height
+                let segmentsNeeded = Int(ceil(screenHeight / roadHeight)) + 2 // Extra segments for smooth scrolling
+                
+                VStack(spacing: 0) {
+                    ForEach(0..<segmentsNeeded, id: \.self) { index in
+                        Image("road")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: roadHeight)
+                            .clipped()
+                    }
+                }
+                .offset(y: roadOffset)
+                .onAppear {
+                    startRoadAnimation()
+                }
+            }
+            .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Top bar
@@ -215,7 +247,7 @@ struct RacetrackView: View {
                         // Auto-scroll to center current player (Will) in viewport
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             if let currentPlayer = players.first(where: { $0.isCurrentPlayer }) {
-                                let currentPlayerY = totalTrackHeight - (CGFloat(currentPlayer.score) * 0.1)
+                                let currentPlayerY = totalTrackHeight - (CGFloat(currentPlayer.score) * 0.3)
                                 let targetY = currentPlayerY - (viewportHeight / 2) // Center in viewport
                                 
                                 withAnimation(.easeInOut(duration: 1.0)) {
@@ -272,7 +304,7 @@ struct VirtualLaneView: View {
                 PlayerMarker(player: player) {
                     onPlayerTap(player)
                 }
-                .offset(y: totalTrackHeight - (CGFloat(player.score) * 0.1) - 25)
+                .offset(y: totalTrackHeight - (CGFloat(player.score) * 0.3) - 25)
             }
         }
         .frame(width: laneWidth)

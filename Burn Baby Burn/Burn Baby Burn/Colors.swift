@@ -9,4 +9,7 @@ struct Colors {
     static let c1_700 = Color(red: 0.20, green: 0.14, blue: 0.10) // 342419
     
     static let c2_500 = Color(red: 1.0, green: 0.75, blue: 0.27) // FFC045
+    
+    static let cPositive = Color(red: 0.56, green: 0.77, blue: 0.13) // 90C422
+    static let cNegative = Color(red: 0.98, green: 0.47, blue: 0.47) // F97777
 }

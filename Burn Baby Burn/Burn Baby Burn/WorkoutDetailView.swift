@@ -147,17 +147,6 @@ struct WorkoutScoreView: View {
                 }
                 
                 Spacer()
-                
-                // Only show MANUAL badge
-                if workout.mode == .manual {
-                    Text("MANUAL")
-                        .font(.custom("VT323-Regular", size: 14))
-                        .foregroundColor(Colors.c0_050)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color(red: 0.4, green: 0.26, blue: 0.26))
-                        .cornerRadius(6)
-                }
             }
             .padding(20)
             .frame(maxWidth: .infinity)
@@ -212,31 +201,13 @@ struct ScoreBreakdownView: View {
                             let effectValue = calculateItemEffect(workoutItem.item, baseCalories: workout.calories)
                             Text(effectValue >= 0 ? "+\(effectValue)" : "\(effectValue)")
                                 .font(.custom("VT323-Regular", size: 20))
-                                .foregroundColor(effectValue >= 0 ? .green : .red)
+                                .foregroundColor(effectValue >= 0 ? Colors.cPositive : Colors.cNegative)
                         }
                         .padding(16)
                         .background(Colors.c1_700)
                         .frame(maxWidth: .infinity)
                     }
                 }
-                
-                // Final Score Row
-                HStack {
-                    Text("Final Score")
-                        .font(.custom("VT323-Regular", size: 20))
-                        .foregroundColor(Colors.c0_050)
-                        .fontWeight(.bold)
-                    
-                    Spacer()
-                    
-                    Text("\(workout.finalScore)")
-                        .font(.custom("VT323-Regular", size: 20))
-                        .foregroundColor(Colors.c0_050)
-                        .fontWeight(.bold)
-                }
-                .padding(16)
-                .background(Colors.c1_700)
-                .frame(maxWidth: .infinity)
             }
             .frame(maxWidth: .infinity)
         }
@@ -364,6 +335,25 @@ struct WorkoutDataView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
+                
+                // Manual badge row (if workout is manual)
+                if workout.mode == .manual {
+                    HStack {
+                        Text("MANUAL")
+                            .font(.custom("VT323-Regular", size: 14))
+                            .foregroundColor(Colors.c0_050)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color(red: 0.4, green: 0.26, blue: 0.26))
+                            .cornerRadius(6)
+                        
+                        Text("Workout posted manually")
+                            .font(.custom("VT323-Regular", size: 16))
+                            .foregroundColor(Colors.c0_050)
+                        
+                        Spacer()
+                    }
+                }
             }
             .padding(20)
             .frame(maxWidth: .infinity)
@@ -377,20 +367,14 @@ struct PhotosView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("PHOTOS")
-                .font(.custom("VT323-Regular", size: 18))
-                .foregroundColor(Colors.c0_500)
-                .padding(.horizontal)
-            
             if attachedImages.count == 1 {
                 // Single image
                 Image(attachedImages[0])
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxHeight: 300)
-                    .cornerRadius(12)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        Rectangle()
                             .stroke(Colors.c1_400.opacity(0.3), lineWidth: 1)
                     )
                     .padding(.horizontal)
@@ -403,9 +387,8 @@ struct PhotosView: View {
                             .aspectRatio(contentMode: .fill)
                             .frame(height: 150)
                             .clipped()
-                            .cornerRadius(12)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12)
+                                Rectangle()
                                     .stroke(Colors.c1_400.opacity(0.3), lineWidth: 1)
                             )
                     }
@@ -521,7 +504,7 @@ struct WorkoutDetailView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 40) {
                     // Header with author info
                     WorkoutHeaderView(message: message)
                     
@@ -535,6 +518,11 @@ struct WorkoutDetailView: View {
                         ScoreBreakdownView(workout: workout)
                     }
                     
+                    // Photos section
+                    if !message.attachedImages.isEmpty {
+                        PhotosView(attachedImages: message.attachedImages)
+                    }
+                    
                     // Workout Data Section
                     if let workout = message.workout {
                         WorkoutDataView(workout: workout)
@@ -546,11 +534,6 @@ struct WorkoutDetailView: View {
                             currentWorkout: workout,
                             currentAuthor: message.author
                         )
-                    }
-                    
-                    // Photos section
-                    if !message.attachedImages.isEmpty {
-                        PhotosView(attachedImages: message.attachedImages)
                     }
                     
                     // Reactions section

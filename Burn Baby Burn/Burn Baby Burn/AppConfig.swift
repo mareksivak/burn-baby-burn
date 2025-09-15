@@ -926,7 +926,10 @@ struct AppConfig {
         
         MessageConfig(
             authorName: "Nic",
-            type: .workout(.strengthTraining, mode: .auto, value: 650, calories: 650, distance: nil, duration: 0, avgHeartRate: nil, maxHeartRate: nil, items: []),
+            type: .workout(.strengthTraining, mode: .auto, value: 650, calories: 650, distance: nil, duration: 0, avgHeartRate: nil, maxHeartRate: nil, items: [
+                WorkoutItemConfig(itemName: "Quicksand", usedBy: "Marek", usedOn: "Nic"),
+                WorkoutItemConfig(itemName: "Roid Rage", usedBy: "Nic", usedOn: "Nic")
+            ]),
             timeOffset: 16 * 3600 + 15 * 60,
             reactions: [],
             comments: [],
