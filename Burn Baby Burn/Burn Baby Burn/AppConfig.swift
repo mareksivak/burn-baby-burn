@@ -56,6 +56,10 @@ struct ReactionConfig {
 
 // MARK: - App Configuration
 struct AppConfig {
+    // MARK: - Racetrack Configuration
+    static let racetrackLength: Int = 10000  // Total track length in points
+    static let racetrackViewport: Int = 1500  // Viewport size in points
+    
     static var authors = [
         Author(name: "Ziga Porenta", imageAsset: "paul"),
         Author(name: "Will Corbett", imageAsset: "will"),

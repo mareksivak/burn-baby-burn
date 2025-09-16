@@ -6,6 +6,7 @@ struct RacetrackView: View {
     @State private var showPlayerWorkouts: Bool = false
     @State private var selectedPlayer: Player? = nil
     @State private var showChat: Bool = false
+    @State private var showMarkers: Bool = true
     @State private var remainingTime: TimeInterval
     @State private var roadOffset: CGFloat = 0
     
@@ -38,7 +39,7 @@ struct RacetrackView: View {
     }
     
     private var maxScore: Int {
-        players.map { $0.score }.max() ?? 3280
+        players.map { $0.score }.max() ?? AppConfig.racetrackLength
     }
     
     // Virtual lanes - players assigned to 5 lanes based on score ranking
@@ -56,12 +57,31 @@ struct RacetrackView: View {
         return lanes
     }
     
-    // Viewport shows 1500 points of track
-    private let viewportHeight: CGFloat = 1500 * 0.3 // Increased scale factor for 1500 points
+    // Viewport shows configured points of track
+    private var viewportHeight: CGFloat {
+        CGFloat(AppConfig.racetrackViewport) * 0.3 // Scale factor for viewport
+    }
     
-    // Calculate total track height
+    // Calculate total track height based on configured track length
     private var totalTrackHeight: CGFloat {
-        CGFloat(maxScore) * 0.3 // Increased scale factor to spread players further apart
+        CGFloat(AppConfig.racetrackLength) * 0.3 // Scale factor for track length
+    }
+    
+    // Calculate the scale factor for player positioning - 500 points = 300 pixels
+    private var playerPositionScale: CGFloat {
+        return 300.0 / 500.0  // 300 pixels per 500 points
+    }
+    
+    // Calculate the base Y position for players (200px from top)
+    private var playerBaseY: CGFloat {
+        return 200  // 200px padding from top
+    }
+    
+    // Calculate the total height needed for the track with padding
+    private var trackHeightWithPadding: CGFloat {
+        let numberOfSegments = AppConfig.racetrackLength / 500  // 20 segments (0, 500, 1000, ..., 9500)
+        let trackHeight = CGFloat(numberOfSegments) * 300  // 300px per segment
+        return trackHeight + 400  // 200px top + 200px bottom padding
     }
     
     // Start the continuous road animation
@@ -183,9 +203,24 @@ struct RacetrackView: View {
                 .padding(.vertical, 8)
                 .background(Color(red: 0.15, green: 0.1, blue: 0.1))
                 
-                // Floating chat button
+                // Floating buttons
                 HStack {
                     Spacer()
+                    
+                    // Markers toggle button
+                    Button(action: {
+                        showMarkers.toggle()
+                    }) {
+                        Image(systemName: showMarkers ? "line.3.horizontal" : "line.3.horizontal")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(showMarkers ? Colors.c2_500 : Colors.c0_050)
+                            .frame(width: 44, height: 44)
+                            .background(showMarkers ? Color(red: 0.20, green: 0.13, blue: 0.13) : Color(red: 0.15, green: 0.10, blue: 0.10))
+                            .cornerRadius(0)
+                    }
+                    .padding(.trailing, 8)
+                    
+                    // Chat button
                     Button(action: {
                         showChat = true
                     }) {
@@ -202,7 +237,7 @@ struct RacetrackView: View {
                 
                 // Racetrack Content
                 ScrollViewReader { proxy in
-                    ScrollView {
+                    ScrollView(.vertical, showsIndicators: true) {
                         VStack(spacing: 0) {
                             // Track container with full height
                             ZStack {
@@ -213,7 +248,9 @@ struct RacetrackView: View {
                                             laneIndex: laneIndex,
                                             players: playersByLane[laneIndex],
                                             maxScore: maxScore,
-                                            totalTrackHeight: totalTrackHeight,
+                                            trackHeightWithPadding: trackHeightWithPadding,
+                                            playerBaseY: playerBaseY,
+                                            playerPositionScale: playerPositionScale,
                                             onPlayerTap: { player in
                                                 print("RacetrackView: Player tapped: \(player.name)")
                                                 selectedPlayer = player
@@ -235,10 +272,33 @@ struct RacetrackView: View {
                                         .padding(.leading, 8)
                                     Spacer()
                                 }
-                                .offset(y: totalTrackHeight - 2)
+                                .offset(y: trackHeightWithPadding - 2)
+                                
+                                // Debug markers every 500 points (highest at top) - conditional
+                                if showMarkers {
+                                    ForEach(0..<(AppConfig.racetrackLength / 500), id: \.self) { markerIndex in
+                                        let milestone = markerIndex * 500
+                                        let markerY = playerBaseY + (CGFloat(markerIndex) * 300)  // 300px per segment
+                                        
+                                        VStack(spacing: 2) {
+                                            Rectangle()
+                                                .fill(Colors.c1_400)
+                                                .frame(height: 2)
+                                                .frame(maxWidth: .infinity)
+                                            
+                                            Text("\(milestone)")
+                                                .font(.custom("VT323-Regular", size: 10))
+                                                .foregroundColor(.white)
+                                                .padding(.horizontal, 4)
+                                                .background(Color.black.opacity(0.7))
+                                                .cornerRadius(2)
+                                        }
+                                        .offset(y: markerY)
+                                    }
+                                }
                             }
                             .frame(maxWidth: .infinity)
-                            .frame(height: totalTrackHeight)
+                            .frame(height: trackHeightWithPadding)
                         }
                         .frame(minHeight: UIScreen.main.bounds.height - 200)
                     }
@@ -247,8 +307,8 @@ struct RacetrackView: View {
                         // Auto-scroll to center current player (Will) in viewport
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             if let currentPlayer = players.first(where: { $0.isCurrentPlayer }) {
-                                let currentPlayerY = totalTrackHeight - (CGFloat(currentPlayer.score) * 0.3)
-                                let targetY = currentPlayerY - (viewportHeight / 2) // Center in viewport
+                                // Calculate player position on the fixed track (highest scores at top)
+                                let playerPosition = playerBaseY + (CGFloat(currentPlayer.score / 500) * 300) + 25
                                 
                                 withAnimation(.easeInOut(duration: 1.0)) {
                                     proxy.scrollTo(currentPlayer.id, anchor: .center)
@@ -290,7 +350,9 @@ struct VirtualLaneView: View {
     let laneIndex: Int
     let players: [Player]
     let maxScore: Int
-    let totalTrackHeight: CGFloat
+    let trackHeightWithPadding: CGFloat
+    let playerBaseY: CGFloat
+    let playerPositionScale: CGFloat
     let onPlayerTap: (Player) -> Void
     
     private var laneWidth: CGFloat {
@@ -299,12 +361,12 @@ struct VirtualLaneView: View {
     
     var body: some View {
         ZStack {
-            // Players positioned vertically in this virtual lane
+            // Players positioned vertically in this virtual lane (highest scores at top)
             ForEach(players) { player in
                 PlayerMarker(player: player) {
                     onPlayerTap(player)
                 }
-                .offset(y: totalTrackHeight - (CGFloat(player.score) * 0.3) - 25)
+                .offset(y: playerBaseY + (CGFloat(player.score / 500) * 300) + 25)
             }
         }
         .frame(width: laneWidth)
