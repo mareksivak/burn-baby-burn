@@ -72,16 +72,16 @@ struct RacetrackView: View {
         return 300.0 / 500.0  // 300 pixels per 500 points
     }
     
-    // Calculate the base Y position for players (200px from top)
+    // Calculate the base Y position for players (start track higher)
     private var playerBaseY: CGFloat {
-        return 200  // 200px padding from top
+        return 50  // Minimal padding from top
     }
     
     // Calculate the total height needed for the track with padding
     private var trackHeightWithPadding: CGFloat {
         let numberOfSegments = AppConfig.racetrackLength / 500  // 20 segments (0, 500, 1000, ..., 9500)
         let trackHeight = CGFloat(numberOfSegments) * 300  // 300px per segment
-        return trackHeight + 400  // 200px top + 200px bottom padding
+        return trackHeight + 250  // 50px top + 200px bottom padding
     }
     
     // Start the continuous road animation
@@ -277,8 +277,8 @@ struct RacetrackView: View {
                                 // Debug markers every 500 points (highest at top) - conditional
                                 if showMarkers {
                                     ForEach(0..<(AppConfig.racetrackLength / 500), id: \.self) { markerIndex in
-                                        let milestone = markerIndex * 500
-                                        let markerY = playerBaseY + (CGFloat(markerIndex) * 300)  // 300px per segment
+                                        let milestone = AppConfig.racetrackLength - (markerIndex * 500)  // 10K at top, 0 at bottom
+                                        let markerY = playerBaseY + (CGFloat(markerIndex) * 300)
                                         
                                         VStack(spacing: 2) {
                                             Rectangle()
@@ -293,7 +293,7 @@ struct RacetrackView: View {
                                                 .background(Color.black.opacity(0.7))
                                                 .cornerRadius(2)
                                         }
-                                        .offset(y: markerY)
+                                        .position(x: UIScreen.main.bounds.width / 2, y: markerY)
                                     }
                                 }
                             }
@@ -308,7 +308,7 @@ struct RacetrackView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             if let currentPlayer = players.first(where: { $0.isCurrentPlayer }) {
                                 // Calculate player position on the fixed track (highest scores at top)
-                                let playerPosition = playerBaseY + (CGFloat(currentPlayer.score / 500) * 300) + 25
+                                let playerPosition = playerBaseY + (CGFloat((AppConfig.racetrackLength - currentPlayer.score) / 500) * 300) + 25
                                 
                                 withAnimation(.easeInOut(duration: 1.0)) {
                                     proxy.scrollTo(currentPlayer.id, anchor: .center)
@@ -366,7 +366,7 @@ struct VirtualLaneView: View {
                 PlayerMarker(player: player) {
                     onPlayerTap(player)
                 }
-                .offset(y: playerBaseY + (CGFloat(player.score / 500) * 300) + 25)
+                .position(x: laneWidth / 2, y: playerBaseY + (CGFloat((AppConfig.racetrackLength - player.score) / 500) * 300) + 25)
             }
         }
         .frame(width: laneWidth)
