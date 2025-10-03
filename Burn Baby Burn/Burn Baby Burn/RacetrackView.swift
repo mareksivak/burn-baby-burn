@@ -67,9 +67,9 @@ struct RacetrackView: View {
         CGFloat(AppConfig.racetrackLength) * 0.3 // Scale factor for track length
     }
     
-    // Calculate the scale factor for player positioning - 500 points = 300 pixels
+    // Calculate the scale factor for player positioning - 500 points = 400 pixels
     private var playerPositionScale: CGFloat {
-        return 300.0 / 500.0  // 300 pixels per 500 points
+        return 400.0 / 500.0  // 400 pixels per 500 points
     }
     
     // Calculate the base Y position for players (start track higher)
@@ -80,7 +80,7 @@ struct RacetrackView: View {
     // Calculate the total height needed for the track with padding
     private var trackHeightWithPadding: CGFloat {
         let numberOfSegments = AppConfig.racetrackLength / 500  // 20 segments (0, 500, 1000, ..., 9500)
-        let trackHeight = CGFloat(numberOfSegments) * 300  // 300px per segment
+        let trackHeight = CGFloat(numberOfSegments) * 400  // 400px per segment
         return trackHeight + 250  // 50px top + 200px bottom padding
     }
     
@@ -278,7 +278,7 @@ struct RacetrackView: View {
                                 if showMarkers {
                                     ForEach(0..<(AppConfig.racetrackLength / 500), id: \.self) { markerIndex in
                                         let milestone = AppConfig.racetrackLength - (markerIndex * 500)  // 10K at top, 0 at bottom
-                                        let markerY = playerBaseY + (CGFloat(markerIndex) * 300)
+                                        let markerY = playerBaseY + (CGFloat(markerIndex) * 400)
                                         
                                         VStack(spacing: 2) {
                                             Rectangle()
@@ -296,6 +296,33 @@ struct RacetrackView: View {
                                         .position(x: UIScreen.main.bounds.width / 2, y: markerY)
                                     }
                                 }
+                                
+                                // Lootboxes - placed 100 points before each player
+                                ForEach(players) { player in
+                                    let lootboxScore = player.score + 100  // 100 points before player
+                                    let playerY = playerBaseY + (CGFloat((AppConfig.racetrackLength - player.score) / 500) * 400) + 25
+                                    let lootboxY = playerY - 80  // 80px above player (100 points = 80px with new 400px scale)
+                                    
+                                    // Calculate which lane this player is in
+                                    let sortedPlayers = players.sorted { $0.score > $1.score }
+                                    let playersPerLane = max(1, sortedPlayers.count / 5)
+                                    let playerIndex = sortedPlayers.firstIndex(where: { $0.id == player.id }) ?? 0
+                                    let laneIndex = min(playerIndex / playersPerLane, 4)
+                                    
+                                    // Calculate X position for this lane
+                                    let laneWidth = (UIScreen.main.bounds.width - 40) / 5
+                                    let laneStartX = 20 + (CGFloat(laneIndex) * laneWidth) // 20px padding + lane offset
+                                    let lootboxX = laneStartX + (laneWidth / 2) // Center of the lane
+                                    
+                                    Image("item-on-track")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .position(x: lootboxX, y: lootboxY)
+                                }
+                                
+                                // Ghost - positioned at 5,300 points with horizontal movement
+                                GhostSprite()
+                                    .position(x: UIScreen.main.bounds.width / 2, y: playerBaseY + (CGFloat((AppConfig.racetrackLength - 5300) / 500) * 400))
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: trackHeightWithPadding)
@@ -366,7 +393,7 @@ struct VirtualLaneView: View {
                 PlayerMarker(player: player) {
                     onPlayerTap(player)
                 }
-                .position(x: laneWidth / 2, y: playerBaseY + (CGFloat((AppConfig.racetrackLength - player.score) / 500) * 300) + 25)
+                .position(x: laneWidth / 2, y: playerBaseY + (CGFloat((AppConfig.racetrackLength - player.score) / 500) * 400) + 25)
             }
         }
         .frame(width: laneWidth)
@@ -418,6 +445,68 @@ struct PlayerMarker: View {
         .onTapGesture {
             onTap()
         }
+    }
+}
+
+// MARK: - Ghost Sprite Animation
+struct GhostSprite: View {
+    @State private var currentFrame = 0
+    @State private var animationTimer: Timer?
+    @State private var horizontalOffset: CGFloat = 0
+    @State private var isMovingRight = true
+    
+    private let ghostImages = ["ghost1", "ghost2", "ghost3"]
+    private let animationSpeed: TimeInterval = 0.5 // 0.5 seconds per frame
+    private let movementSpeed: CGFloat = 1.0 // pixels per frame (slower movement)
+    private let movementRange: CGFloat = 300 // total movement range (150px each side)
+    
+    var body: some View {
+        Image(ghostImages[currentFrame])
+            .resizable()
+            .frame(width: 48, height: 48)
+            .scaleEffect(x: isMovingRight ? 1 : -1, y: 1) // Flip horizontally when moving left
+            .offset(x: horizontalOffset)
+            .onAppear {
+                startAnimations()
+            }
+            .onDisappear {
+                stopAnimations()
+            }
+    }
+    
+    private func startAnimations() {
+        // Start sprite animation
+        animationTimer = Timer.scheduledTimer(withTimeInterval: animationSpeed, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                currentFrame = (currentFrame + 1) % ghostImages.count
+            }
+        }
+        
+        // Start horizontal movement animation
+        startHorizontalMovement()
+    }
+    
+    private func startHorizontalMovement() {
+        Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { timer in
+            withAnimation(.linear(duration: 0.016)) {
+                if isMovingRight {
+                    horizontalOffset += movementSpeed
+                    if horizontalOffset >= movementRange / 2 {
+                        isMovingRight = false
+                    }
+                } else {
+                    horizontalOffset -= movementSpeed
+                    if horizontalOffset <= -movementRange / 2 {
+                        isMovingRight = true
+                    }
+                }
+            }
+        }
+    }
+    
+    private func stopAnimations() {
+        animationTimer?.invalidate()
+        animationTimer = nil
     }
 }
 
